@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Dashboard - RouteGuard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/uber_map.css">
+
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        .police-dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+
+        .police-sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+        }
+
+        .police-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .police-header h1 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .police-info {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .police-info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: var(--spacing-xs) 0;
+        }
+
+        .location-update {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .location-update h3 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .alert-list {
+            margin-top: var(--spacing-lg);
+        }
+
+        .alert-list h3 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .alert-card {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .alert-card:hover {
+            border-color: var(--danger);
+        }
+
+        .alert-card.active {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .alert-badge {
+            background: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .map-container {
+            position: relative;
+        }
+
+        #police-map {
+            width: 100%;
+            height: 100vh;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .map-btn {
+            background: white;
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="police-dashboard">
+        <!-- Sidebar -->
+        <div class="police-sidebar">
+            <div class="police-header">
+                <h1>🚔 Police Dashboard</h1>
+                <button onclick="handleLogout()" class="btn-secondary"
+                    style="width: 100%; margin-top: 10px;">Logout</button>
+            </div>
+
+            <!-- Officer Info -->
+            <div class="police-info">
+                <h3 style="color: var(--text-primary); margin-bottom: 10px;">Officer Information</h3>
+                <p><strong>Name:</strong> <span id="officer-name">Loading...</span></p>
+                <p><strong>Badge:</strong> <span id="officer-badge">Loading...</span></p>
+                <p><strong>Station:</strong> <span id="officer-station">Loading...</span></p>
+            </div>
+
+            <!-- Location Update -->
+            <div class="location-update">
+                <h3>📍 Your Location</h3>
+                <div class="location-status">
+                    <span class="status-dot"></span>
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;">Location Tracking Active</span>
+                </div>
+                <button onclick="updateMyLocation()" class="btn-primary" style="width: 100%;">
+                    Update My Location
+                </button>
+                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 10px;">
+                    Last updated: <span id="last-updated">Never</span>
+                </p>
+            </div>
+
+            <!-- Active Alerts -->
+            <div class="alert-list">
+                <h3>🚨 Active Alerts (<span id="alert-count">0</span>)</h3>
+                <div id="alerts-container">
+                    <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                        No active alerts
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div id="police-map"></div>
+            <div class="map-controls">
+                <button class="map-btn" onclick="centerOnMe()">📍 Center on Me</button>
+                <button class="map-btn" onclick="showAllAlerts()">🗺️ Show All Alerts</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map, myLocationMarker;
+        let policeData = null;
+        let myLocation = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPoliceData();
+            initializeMap();
+            startLocationTracking();
+            loadActiveAlerts();
+        });
+
+        async function loadPoliceData() {
+            try {
+                const response = await fetch('/api/police/me/');
+                const data = await response.json();
+
+                if (data.authenticated && data.is_police) {
+                    policeData = data;
+                    document.getElementById('officer-name').textContent = data.name;
+                    document.getElementById('officer-badge').textContent = data.badge_number;
+                    document.getElementById('officer-station').textContent = data.station_name;
+                } else {
+                    window.location.href = '/auth/login/';
+                }
+            } catch (error) {
+                console.error('Failed to load police data:', error);
+                window.location.href = '/auth/login/';
+            }
+        }
+
+        function initializeMap() {
+            map = L.map('police-map').setView([20.5937, 78.9629], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        function startLocationTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        myLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        updateMapMarker();
+                    },
+                    (error) => console.error('Geolocation error:', error),
+                    { enableHighAccuracy: true, maximumAge: 10000 }
+                );
+            }
+        }
+
+        function updateMapMarker() {
+            if (!myLocation) return;
+
+            if (myLocationMarker) {
+                myLocationMarker.setLatLng([myLocation.lat, myLocation.lng]);
+            } else {
+                myLocationMarker = L.marker([myLocation.lat, myLocation.lng], {
+                    icon: L.divIcon({
+                        className: 'police-marker',
+                        html: '<div style="background: #0066FF; width: 32px; height: 32px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>'
+                    })
+                }).addTo(map);
+
+                map.setView([myLocation.lat, myLocation.lng], 13);
+            }
+        }
+
+        async function updateMyLocation() {
+            if (!myLocation) {
+                alert('Waiting for GPS location...');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/police/update-location/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        latitude: myLocation.lat,
+                        longitude: myLocation.lng
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+                    alert('Location updated successfully!');
+                } else {
+                    alert('Failed to update location');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                alert('Error updating location');
+            }
+        }
+
+        function centerOnMe() {
+            if (myLocation) {
+                map.setView([myLocation.lat, myLocation.lng], 15);
+            }
+        }
+
+        function showAllAlerts() {
+            // TODO: Implement show all alerts
+            alert('Feature coming soon!');
+        }
+
+        async function loadActiveAlerts() {
+            // TODO: Load active alerts from Firestore
+            document.getElementById('alert-count').textContent = '0';
+        }
+
+        async function handleLogout() {
+            await fetch('/auth/logout/', { method: 'POST' });
+            window.location.href = '/auth/login/';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+
+</html>

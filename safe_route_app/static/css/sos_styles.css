@@ -1,0 +1,373 @@
+/* ========== SOS Emergency System Styles ========== */
+
+/* Floating SOS Button */
+.sos-button {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: 4px solid white;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    transition: all 0.3s;
+    animation: sosGlow 2s infinite;
+}
+
+.sos-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.6);
+}
+
+.sos-button.active {
+    background: #dc2626;
+    animation: sosActive 1s infinite;
+}
+
+@keyframes sosGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 8px 32px rgba(239, 68, 68, 0.7);
+    }
+}
+
+@keyframes sosActive {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.sos-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+}
+
+.sos-text {
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Countdown Modal */
+.sos-countdown-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.2s;
+}
+
+.sos-countdown-modal.active {
+    display: flex;
+}
+
+.countdown-content {
+    text-align: center;
+    color: white;
+}
+
+.countdown-number {
+    font-size: 8rem;
+    font-weight: 700;
+    color: #ef4444;
+    animation: countdownPulse 1s infinite;
+    text-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
+}
+
+@keyframes countdownPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+.countdown-text {
+    font-size: 1.5rem;
+    margin: 20px 0;
+    color: var(--text-secondary);
+}
+
+.cancel-sos-btn {
+    padding: 16px 48px;
+    background: white;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+}
+
+.cancel-sos-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+/* Recording Indicator */
+.recording-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(239, 68, 68, 0.95);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    z-index: 1500;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+}
+
+.recording-indicator.active {
+    display: flex;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+.recording-text {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.recording-time {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+/* Police Notified Screen */
+.police-notified-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1999;
+    animation: fadeIn 0.3s;
+}
+
+.police-notified-screen.active {
+    display: flex;
+}
+
+.notified-icon {
+    font-size: 6rem;
+    margin-bottom: 24px;
+    animation: checkmarkAppear 0.5s;
+}
+
+@keyframes checkmarkAppear {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.notified-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.notified-message {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.notified-details {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+}
+
+.notified-details p {
+    color: white;
+    margin: 8px 0;
+    font-size: 1rem;
+}
+
+.end-sos-btn {
+    padding: 16px 48px;
+    background: white;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.end-sos-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+/* Media Permission Modal */
+.media-permission-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2001;
+}
+
+.media-permission-modal.active {
+    display: flex;
+}
+
+.permission-content {
+    background: var(--bg-secondary);
+    padding: 32px;
+    border-radius: 16px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.permission-content h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+
+.permission-content p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.permission-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.permission-btn {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.permission-btn.allow {
+    background: var(--success);
+    color: white;
+}
+
+.permission-btn.deny {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sos-button {
+        width: 70px;
+        height: 70px;
+        bottom: 80px;
+        right: 16px;
+    }
+
+    .sos-icon {
+        font-size: 1.75rem;
+    }
+
+    .countdown-number {
+        font-size: 6rem;
+    }
+
+    .notified-title {
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,292 @@
++
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>RouteGuard - Your Safety Navigator</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/layout_fix.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 2L4 10v12c0 7.18 5.82 13 13 13s13-5.82 13-13V10L16 2z" fill="url(#gradient)"
+                        stroke="#fff" stroke-width="2" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>RouteGuard</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat">
+                    <span class="stat-value">{{ crime_count }}</span>
+                    <!-- Main Container -->
+                    <div class="container">
+                        <!-- Sidebar -->
+                        <aside class="sidebar">
+                            <!-- Location Search -->
+                            <div class="sidebar-section">
+                                <h2>� Search Location</h2>
+                                <div class="search-container">
+                                    <input type="text" id="location-search"
+                                        placeholder="Search any city, address, or landmark..." class="search-input">
+                                    <button id="search-button" class="btn-primary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8" />
+                                            <path d="m21 21-4.35-4.35" />
+                                        </svg>
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="sidebar-section">
+                                <h2>�🗺️ Plan Your Route</h2>
+                                <p class="subtitle">Click on the map to set start and end points</p>
+
+                                <div class="location-inputs">
+                                    <div class="input-group">
+                                        <label>📍 Start Location</label>
+                                        <input type="text" id="start-location"
+                                            placeholder="Click map or use current location" readonly>
+                                        <button id="use-current-location" class="btn-secondary">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                            Use My Location
+                                        </button>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>🎯 Destination</label>
+                                        <input type="text" id="end-location"
+                                            placeholder="Click on map to set destination" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="action-buttons">
+                                    <button id="calculate-route" class="btn-primary" disabled>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                            <circle cx="12" cy="10" r="3" />
+                                        </svg>
+                                        Find Safest Route
+                                    </button>
+                                    <button id="clear-route" class="btn-secondary">Clear</button>
+                                </div>
+                            </div>
+
+                            <!-- Emergency Safety Information -->
+                            <div id="emergency-info" class="sidebar-section emergency-section" style="display: none;">
+                                <h3>🚨 Safety Precautions</h3>
+                                <div class="emergency-content">
+                                    <div class="warning-message">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                            <line x1="12" y1="9" x2="12" y2="13" />
+                                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                                        </svg>
+                                        <span>All routes have elevated safety risks</span>
+                                    </div>
+
+                                    <div class="emergency-numbers">
+                                        <h4>📞 Emergency Helplines (India)</h4>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Police:</span>
+                                            <a href="tel:100" class="contact-number">100</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Ambulance:</span>
+                                            <a href="tel:102" class="contact-number">102</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Fire:</span>
+                                            <a href="tel:101" class="contact-number">101</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Emergency (All):</span>
+                                            <a href="tel:112" class="contact-number">112</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Women Helpline:</span>
+                                            <a href="tel:1091" class="contact-number">1091</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Women (24x7):</span>
+                                            <a href="tel:181" class="contact-number">181</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Child Helpline:</span>
+                                            <a href="tel:1098" class="contact-number">1098</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Senior Citizen:</span>
+                                            <a href="tel:14567" class="contact-number">14567</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Disaster Mgmt:</span>
+                                            <a href="tel:108" class="contact-number">108</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Railway Security:</span>
+                                            <a href="tel:182" class="contact-number">182</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Road Accident:</span>
+                                            <a href="tel:1073" class="contact-number">1073</a>
+                                        </div>
+                                        <div class="contact-item">
+                                            <span class="contact-label">Cyber Crime:</span>
+                                            <a href="tel:1930" class="contact-number">1930</a>
+                                        </div>
+                                    </div>
+
+                                    <div id="nearby-safety" class="nearby-safety">
+                                        <h4>🏛️ Nearby Safety Resources</h4>
+                                        <div id="safety-resources-list"></div>
+                                    </div>
+
+                                    <div class="safety-tips">
+                                        <h4>💡 Safety Tips</h4>
+                                        <ul id="safety-tips-list">
+                                            <li>Stay in well-lit areas</li>
+                                            <li>Keep emergency contacts ready</li>
+                                            <li>Share your location with trusted contacts</li>
+                                            <li>Consider traveling during daylight hours</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Route Results -->
+                            <div id="route-results" class="sidebar-section" style="display: none;">
+                                <h3>📊 Route Analysis</h3>
+                                <div id="routes-container"></div>
+                            </div>
+
+                            <!-- AI Explanation -->
+                            <div id="ai-explanation" class="sidebar-section ai-section" style="display: none;">
+                                <h3>🤖 AI Safety Advisor</h3>
+                                <div id="ai-content" class="ai-content"></div>
+                            </div>
+
+                            <!-- Data Management -->
+                            <div class="sidebar-section">
+                                <h3>⚙️ Data Management</h3>
+
+                                <button id="generate-sample-data" class="btn-secondary full-width">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 6v6l4 2" />
+                                    </svg>
+                                    Generate Sample Data for demo purpose
+                                </button>
+
+                                <div class="upload-section">
+                                    <label for="csv-upload" class="upload-label">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        Upload Crime CSV (in production level using api we are collecting all data from
+                                        police website)
+                                    </label>
+                                    <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                                </div>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="sidebar-section legend">
+                                <h3>🎨 Map Legend</h3>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #10b981;"></div>
+                                    <span>Safest Route (A-B)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #f59e0b;"></div>
+                                    <span>Moderate Risk (C)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #ef4444;"></div>
+                                    <span>High Risk (D-F)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #6366f1;"></div>
+                                    <span>Safety Zones</span>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <!-- Sidebar Backdrop (Mobile) -->
+                        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+                        <!-- Mobile Toggle Button -->
+                        <button id="mobile-toggle" class="mobile-toggle" aria-label="Toggle Menu">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <line x1="3" y1="18" x2="21" y2="18" />
+                            </svg>
+                        </button>
+
+                        <!-- Map Container -->
+                        <main class="map-container">
+                            <div id="map"></div>
+
+                            <!-- Loading Overlay -->
+                            <div id="loading-overlay" class="loading-overlay" style="display: none;">
+                                <div class="spinner"></div>
+                                <p>Calculating safest routes...</p>
+                            </div>
+                        </main>
+                    </div>
+
+                    <!-- Toast Notifications -->
+                    <div id="toast-container" class="toast-container"></div>
+
+                    <!-- Leaflet JS -->
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+                    <!-- Leaflet Routing Machine -->
+                    <script
+                        src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+                    <!-- Custom JS -->
+                    <script src="/static/js/main.js"></script>
+</body>
+
+</html>
