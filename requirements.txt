@@ -3,7 +3,7 @@ Django==4.2.10
 django-leaflet==0.30.1
 
 # Database (PostgreSQL only needed for production deployment)
-# psycopg2-binary is removed for local dev - we'll use SQLite
+psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 
 # Environment & Configuration
