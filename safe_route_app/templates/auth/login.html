@@ -150,7 +150,11 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    window.location.href = '/';
+                    if (data.user.is_police) {
+                        window.location.href = '/police/dashboard/';
+                    } else {
+                        window.location.href = '/';
+                    }
                 } else {
                     throw new Error(data.error || 'Login failed');
                 }
