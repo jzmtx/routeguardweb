@@ -4,353 +4,457 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police Dashboard - RouteGuard</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/uber_map.css">
+    <title>Police Command Center - RouteGuard</title>
 
-    <!-- Leaflet for maps -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        .police-dashboard {
-            display: grid;
-            grid-template-columns: 350px 1fr;
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             height: 100vh;
-            background: var(--bg-primary);
+            display: flex;
+            overflow: hidden;
         }
 
-        .police-sidebar {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            padding: var(--spacing-lg);
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-card);
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
         }
 
-        .police-header {
-            margin-bottom: var(--spacing-xl);
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            background: linear-gradient(to right, #1e293b, #0f172a);
         }
 
-        .police-header h1 {
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .police-info {
-            background: var(--bg-tertiary);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .police-info p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin: var(--spacing-xs) 0;
-        }
-
-        .location-update {
-            background: var(--bg-tertiary);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .location-update h3 {
-            color: var(--text-primary);
-            font-size: 1rem;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .location-status {
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
+            gap: 10px;
+            color: var(--accent-color);
         }
 
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 2s infinite;
+        .officer-info {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
         }
 
-        .alert-list {
-            margin-top: var(--spacing-lg);
+        .officer-name {
+            font-weight: 600;
+            font-size: 1.1rem;
         }
 
-        .alert-list h3 {
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-md);
+        .badge-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .alerts-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
 
         .alert-card {
-            background: var(--bg-tertiary);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-md);
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
             cursor: pointer;
-            border: 2px solid transparent;
             transition: all 0.2s;
         }
 
         .alert-card:hover {
-            border-color: var(--danger);
-        }
-
-        .alert-card.active {
-            border-color: var(--danger);
-            background: rgba(239, 68, 68, 0.1);
+            background-color: rgba(239, 68, 68, 0.2);
         }
 
         .alert-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: 8px;
         }
 
         .alert-badge {
-            background: var(--danger);
+            background-color: var(--danger-color);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 99px;
             font-size: 0.75rem;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+        }
+
+        .user-name {
             font-weight: 600;
         }
 
-        .map-container {
+        .alert-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Main Map Area */
+        .main-content {
+            flex: 1;
             position: relative;
         }
 
-        #police-map {
+        #map {
             width: 100%;
-            height: 100vh;
+            height: 100%;
         }
 
-        .map-controls {
+        /* Stats Overlay */
+        .stats-overlay {
             position: absolute;
             top: 20px;
-            right: 20px;
-            z-index: 1000;
+            left: 20px;
             display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
+            gap: 12px;
+            z-index: 1000;
+            pointer-events: none;
         }
 
-        .map-btn {
-            background: white;
-            border: none;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            cursor: pointer;
-            font-weight: 600;
+        .stat-card {
+            background-color: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Leaflet Customization */
+        .leaflet-popup-content-wrapper {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .leaflet-popup-tip {
+            background-color: var(--bg-card);
         }
     </style>
 </head>
 
 <body>
-    <div class="police-dashboard">
-        <!-- Sidebar -->
-        <div class="police-sidebar">
-            <div class="police-header">
-                <h1>🚔 Police Dashboard</h1>
-                <button onclick="handleLogout()" class="btn-secondary"
-                    style="width: 100%; margin-top: 10px;">Logout</button>
-            </div>
-
-            <!-- Officer Info -->
-            <div class="police-info">
-                <h3 style="color: var(--text-primary); margin-bottom: 10px;">Officer Information</h3>
-                <p><strong>Name:</strong> <span id="officer-name">Loading...</span></p>
-                <p><strong>Badge:</strong> <span id="officer-badge">Loading...</span></p>
-                <p><strong>Station:</strong> <span id="officer-station">Loading...</span></p>
-            </div>
-
-            <!-- Location Update -->
-            <div class="location-update">
-                <h3>📍 Your Location</h3>
-                <div class="location-status">
-                    <span class="status-dot"></span>
-                    <span style="color: var(--text-secondary); font-size: 0.875rem;">Location Tracking Active</span>
-                </div>
-                <button onclick="updateMyLocation()" class="btn-primary" style="width: 100%;">
-                    Update My Location
-                </button>
-                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 10px;">
-                    Last updated: <span id="last-updated">Never</span>
-                </p>
-            </div>
-
-            <!-- Active Alerts -->
-            <div class="alert-list">
-                <h3>🚨 Active Alerts (<span id="alert-count">0</span>)</h3>
-                <div id="alerts-container">
-                    <p style="color: var(--text-muted); text-align: center; padding: 20px;">
-                        No active alerts
-                    </p>
-                </div>
-            </div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">🛡️ RouteGuard Command</div>
         </div>
 
-        <!-- Map -->
-        <div class="map-container">
-            <div id="police-map"></div>
-            <div class="map-controls">
-                <button class="map-btn" onclick="centerOnMe()">📍 Center on Me</button>
-                <button class="map-btn" onclick="showAllAlerts()">🗺️ Show All Alerts</button>
+        <div class="officer-info">
+            <div id="officer-name" class="officer-name">Loading...</div>
+            <div id="badge-number" class="badge-info">Loading...</div>
+            <div id="station-name" class="badge-info" style="color: var(--accent-color)"></div>
+        </div>
+
+        <div class="alerts-section">
+            <h3 class="section-title">Active Alerts</h3>
+            <div id="alerts-container">
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                    No active SOS alerts
+                </div>
+            </div>
+
+            <h3 class="section-title" style="margin-top: 32px;">Active Travelers</h3>
+            <div id="active-travelers-list">
+                <!-- Populated by JS -->
             </div>
         </div>
-    </div>
+    </aside>
 
+    <main class="main-content">
+        <div class="stats-overlay">
+            <div class="stat-card">
+                <div class="stat-value" id="active-alert-count">0</div>
+                <div class="stat-label">SOS Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="active-user-count">0</div>
+                <div class="stat-label">Users Monitored</div>
+            </div>
+        </div>
+        <div id="map"></div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map, myLocationMarker;
-        let policeData = null;
-        let myLocation = null;
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: false
+        }).setView([20.5937, 78.9629], 5);
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadPoliceData();
-            initializeMap();
-            startLocationTracking();
-            loadActiveAlerts();
-        });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '©OpenStreetMap, ©CartoDB',
+            maxZoom: 19
+        }).addTo(map);
 
-        async function loadPoliceData() {
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // State
+        const markers = {
+            alerts: {},
+            users: {}
+        };
+
+        // Icons
+        const icons = {
+            alert: L.divIcon({
+                className: 'alert-icon',
+                html: '<div style="background: #ef4444; width: 24px; height: 24px; border-radius: 50%; box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.3); animation: pulse 1s infinite;"></div>',
+                iconSize: [24, 24]
+            }),
+            user: L.divIcon({
+                className: 'user-icon',
+                html: '<div style="background: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                iconSize: [12, 12]
+            })
+        };
+
+        // Fetch Police Info
+        async function loadPoliceInfo() {
             try {
                 const response = await fetch('/api/police/me/');
                 const data = await response.json();
 
                 if (data.authenticated && data.is_police) {
-                    policeData = data;
                     document.getElementById('officer-name').textContent = data.name;
-                    document.getElementById('officer-badge').textContent = data.badge_number;
-                    document.getElementById('officer-station').textContent = data.station_name;
+                    document.getElementById('badge-number').textContent = `Badge #${data.badge_number}`;
+                    document.getElementById('station-name').textContent = data.station_name;
+
+                    // Center map on jurisdiction
+                    if (data.jurisdiction) {
+                        map.setView([data.jurisdiction.lat, data.jurisdiction.lng], 13);
+
+                        // Draw jurisdiction circle
+                        L.circle([data.jurisdiction.lat, data.jurisdiction.lng], {
+                            color: '#3b82f6',
+                            fillColor: '#3b82f6',
+                            fillOpacity: 0.1,
+                            radius: data.jurisdiction.radius
+                        }).addTo(map);
+                    }
                 } else {
                     window.location.href = '/auth/login/';
                 }
             } catch (error) {
-                console.error('Failed to load police data:', error);
-                window.location.href = '/auth/login/';
+                console.error('Failed to load police info:', error);
             }
         }
 
-        function initializeMap() {
-            map = L.map('police-map').setView([20.5937, 78.9629], 5);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+        // Poll for Data
+        function startPolling() {
+            fetchAlerts();
+            fetchActiveTravels();
+            setInterval(fetchAlerts, 5000);
+            setInterval(fetchActiveTravels, 5000);
         }
 
-        function startLocationTracking() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    (position) => {
-                        myLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        updateMapMarker();
-                    },
-                    (error) => console.error('Geolocation error:', error),
-                    { enableHighAccuracy: true, maximumAge: 10000 }
-                );
+        async function fetchAlerts() {
+            try {
+                const response = await fetch('/api/police/active-alerts/');
+                const data = await response.json();
+
+                if (data.success) {
+                    updateAlertsUI(data.alerts);
+                    document.getElementById('active-alert-count').textContent = data.count;
+                }
+            } catch (error) {
+                console.error('Error fetching alerts:', error);
             }
         }
 
-        function updateMapMarker() {
-            if (!myLocation) return;
+        async function fetchActiveTravels() {
+            try {
+                const response = await fetch('/api/tracking/active/');
+                const data = await response.json();
 
-            if (myLocationMarker) {
-                myLocationMarker.setLatLng([myLocation.lat, myLocation.lng]);
-            } else {
-                myLocationMarker = L.marker([myLocation.lat, myLocation.lng], {
-                    icon: L.divIcon({
-                        className: 'police-marker',
-                        html: '<div style="background: #0066FF; width: 32px; height: 32px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>'
-                    })
-                }).addTo(map);
-
-                map.setView([myLocation.lat, myLocation.lng], 13);
+                if (data.success) {
+                    updateUsersMap(data.travels);
+                    document.getElementById('active-user-count').textContent = data.count;
+                }
+            } catch (error) {
+                console.error('Error fetching travels:', error);
             }
         }
 
-        async function updateMyLocation() {
-            if (!myLocation) {
-                alert('Waiting for GPS location...');
+        function updateAlertsUI(alerts) {
+            const container = document.getElementById('alerts-container');
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No active SOS alerts</div>';
+
+                // Clear map markers for alerts
+                Object.keys(markers.alerts).forEach(id => {
+                    map.removeLayer(markers.alerts[id]);
+                    delete markers.alerts[id];
+                });
                 return;
             }
 
-            try {
-                const response = await fetch('/api/police/update-location/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        latitude: myLocation.lat,
-                        longitude: myLocation.lng
-                    })
-                });
+            container.innerHTML = '';
 
-                if (response.ok) {
-                    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
-                    alert('Location updated successfully!');
+            // Mark existing markers as checked
+            const currentAlertIds = new Set();
+
+            alerts.forEach(alert => {
+                currentAlertIds.add(alert.id);
+
+                // Add to sidebar
+                const card = document.createElement('div');
+                card.className = 'alert-card';
+                card.innerHTML = `
+                    <div class="alert-header">
+                        <span class="alert-badge">SOS ACTIVE</span>
+                        <span style="font-size: 0.75rem;">Now</span>
+                    </div>
+                    <div class="user-name">${alert.user_name}</div>
+                    <div class="alert-time">${alert.location.address || 'Unknown Location'}</div>
+                    <button onclick="respondToAlert('${alert.id}')" style="margin-top: 10px; width: 100%; background: var(--danger-color); color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer;">Respond</button>
+                `;
+                card.onclick = () => {
+                    map.setView([alert.location.lat, alert.location.lng], 16);
+                };
+                container.appendChild(card);
+
+                // Update or Add Map Marker
+                if (!markers.alerts[alert.id]) {
+                    const marker = L.marker([alert.location.lat, alert.location.lng], {
+                        icon: icons.alert
+                    }).addTo(map);
+
+                    marker.bindPopup(`
+                        <b>SOS ALERT</b><br>
+                        User: ${alert.user_name}<br>
+                        Phone: ${alert.user_phone}<br>
+                        <button onclick="respondToAlert('${alert.id}')">Respond Now</button>
+                    `);
+
+                    markers.alerts[alert.id] = marker;
+
+                    // Trigger sound/notification here if needed
                 } else {
-                    alert('Failed to update location');
+                    markers.alerts[alert.id].setLatLng([alert.location.lat, alert.location.lng]);
                 }
-            } catch (error) {
-                console.error('Update error:', error);
-                alert('Error updating location');
-            }
-        }
+            });
 
-        function centerOnMe() {
-            if (myLocation) {
-                map.setView([myLocation.lat, myLocation.lng], 15);
-            }
-        }
-
-        function showAllAlerts() {
-            // TODO: Implement show all alerts
-            alert('Feature coming soon!');
-        }
-
-        async function loadActiveAlerts() {
-            // TODO: Load active alerts from Firestore
-            document.getElementById('alert-count').textContent = '0';
-        }
-
-        async function handleLogout() {
-            await fetch('/auth/logout/', { method: 'POST' });
-            window.location.href = '/auth/login/';
-        }
-
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+            // Remove old markers
+            Object.keys(markers.alerts).forEach(id => {
+                if (!currentAlertIds.has(id)) {
+                    map.removeLayer(markers.alerts[id]);
+                    delete markers.alerts[id];
                 }
-            }
-            return cookieValue;
+            });
         }
+
+        function updateUsersMap(travels) {
+            const currentTravelIds = new Set();
+
+            travels.forEach(trip => {
+                currentTravelIds.add(trip.id);
+
+                if (!markers.users[trip.id]) {
+                    const marker = L.marker([trip.lat, trip.lng], {
+                        icon: icons.user
+                    }).addTo(map);
+
+                    marker.bindPopup(`
+                        <b>${trip.user_name}</b><br>
+                        Route Safety: ${trip.safety_score}/100<br>
+                        Moving at: ${(trip.speed * 3.6).toFixed(1)} km/h
+                    `);
+
+                    markers.users[trip.id] = marker;
+                } else {
+                    markers.users[trip.id].setLatLng([trip.lat, trip.lng]);
+                }
+            });
+
+            // Remove ended trips
+            Object.keys(markers.users).forEach(id => {
+                if (!currentTravelIds.has(id)) {
+                    map.removeLayer(markers.users[id]);
+                    delete markers.users[id];
+                }
+            });
+        }
+
+        async function respondToAlert(alertId) {
+            // Placeholder for response logic
+            alert(`Responding to alert ${alertId}`);
+        }
+
+        // Initialize
+        loadPoliceInfo();
+        startPolling();
     </script>
 </body>
 
