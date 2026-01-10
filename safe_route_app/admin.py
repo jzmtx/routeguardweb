@@ -58,3 +58,29 @@ class RouteHistoryAdmin(admin.ModelAdmin):
     list_filter = ['time_of_day', 'searched_at']
     date_hierarchy = 'searched_at'
     readonly_fields = ['searched_at']
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['email', 'full_name', 'phone', 'is_active', 'created_at']
+    search_fields = ['email', 'full_name', 'phone']
+    list_filter = ['is_active', 'created_at']
+
+
+@admin.register(PoliceAuthority)
+class PoliceAuthorityAdmin(admin.ModelAdmin):
+    list_display = ['badge_number', 'station_name', 'rank', 'verified_by_admin', 'created_at']
+    list_filter = ['verified_by_admin', 'rank']
+    search_fields = ['badge_number', 'station_name']
+
+
+@admin.register(EmergencyAlert)
+class EmergencyAlertAdmin(admin.ModelAdmin):
+    list_display = ['status', 'user', 'alert_time', 'assigned_officer']
+    list_filter = ['status', 'alert_time']
+
+
+@admin.register(TravelHistory)
+class TravelHistoryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'start_time', 'distance_km', 'safety_score']
+    date_hierarchy = 'start_time'
