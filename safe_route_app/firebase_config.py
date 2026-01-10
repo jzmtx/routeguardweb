@@ -8,18 +8,36 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 cred_path = BASE_DIR / 'serviceAccountKey.json'
 
+import json
+
 def initialize_firebase():
     """Initialize Firebase Admin SDK if not already initialized"""
     if not firebase_admin._apps:
+        # Check for credentials in environment variable (Production)
+        service_account_json = os.getenv('FIREBASE_SERVICE_ACCOUNT')
+        
+        if service_account_json:
+            try:
+                cred_dict = json.loads(service_account_json)
+                cred = credentials.Certificate(cred_dict)
+                firebase_admin.initialize_app(cred, {
+                    'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', 'routeguard.appspot.com')
+                })
+                print("Firebase Admin SDK initialized from environment variable.")
+                return
+            except json.JSONDecodeError as e:
+                print(f"Error parsing FIREBASE_SERVICE_ACCOUNT: {e}")
+
+        # Check for credentials file (Local Development)
         if cred_path.exists():
             cred = credentials.Certificate(str(cred_path))
             firebase_admin.initialize_app(cred, {
                 'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', 'routeguard.appspot.com')
             })
-            print("Firebase Admin SDK initialized successfully.")
+            print("Firebase Admin SDK initialized from file.")
         else:
             print(f"Warning: Firebase service account key not found at {cred_path}")
-            print("Firebase features will not work until serviceAccountKey.json is added.")
+            print("Firebase features will not work until serviceAccountKey.json is added or FIREBASE_SERVICE_ACCOUNT env var is set.")
 
 def verify_firebase_token(id_token):
     """Verify Firebase ID token and return user info"""
