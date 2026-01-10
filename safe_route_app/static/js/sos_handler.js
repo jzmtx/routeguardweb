@@ -75,10 +75,41 @@ class SOSHandler {
             // 3. Request media permissions and start recording
             await this.startMediaRecording();
             
-            // 4. Show police notified screen
+            // 4. Show police notified screen or backup screen
             setTimeout(() => {
                 document.getElementById('recording-indicator').classList.remove('active');
-                document.getElementById('police-notified').classList.add('active');
+                const notifiedScreen = document.getElementById('police-notified');
+                notifiedScreen.classList.add('active');
+                
+                // Update UI based on response
+                if (this.lastResponse && this.lastResponse.backup_mode) {
+                    document.querySelector('.notified-title').textContent = 'No Nearby Police Found';
+                    document.querySelector('.notified-message').innerHTML = `
+                        ${this.lastResponse.message}<br><br>
+                        <strong>Call Emergency Services Immediately:</strong>
+                    `;
+                    
+                    const detailsContainer = document.querySelector('.notified-details');
+                    let contactsHtml = '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">';
+                    
+                    this.lastResponse.emergency_contacts.forEach(contact => {
+                        contactsHtml += `
+                            <a href="tel:${contact.number}" style="background: #ef4444; color: white; padding: 12px; border-radius: 8px; text-decoration: none; text-align: center; font-weight: bold;">
+                                📞 Call ${contact.name} (${contact.number})
+                            </a>
+                        `;
+                    });
+                    contactsHtml += '</div>';
+                    
+                    detailsContainer.innerHTML = contactsHtml;
+                    document.querySelector('.notified-icon').textContent = '⚠️';
+                } else {
+                    // Standard success case
+                    const officerName = this.lastResponse?.officer?.name || 'Dispatch';
+                    document.getElementById('officer-name-display').textContent = officerName;
+                    document.getElementById('officer-eta').textContent = 'Calculating...';
+                    document.getElementById('alert-status').textContent = 'Active';
+                }
             }, 3000);
             
         } catch (error) {
@@ -111,6 +142,7 @@ class SOSHandler {
         
         const data = await response.json();
         this.alertId = data.alert_id;
+        this.lastResponse = data;
         
         console.log('Alert created:', this.alertId);
     }

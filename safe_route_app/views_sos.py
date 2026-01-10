@@ -86,9 +86,29 @@ def trigger_sos(request):
         nearest_officer = find_nearest_police(latitude, longitude)
         
         if not nearest_officer:
+            # Fallback: No police found nearby
+            # Return nearest station coordinates (if any) or just emergency numbers
+            
+            # Find closest station regardless of jurisdiction
+            backup_officer = None
+            police_officers = PoliceAuthority.objects.filter(verified_by_admin=True)
+            if police_officers.exists():
+                # Simple logic to just pick the first one as a reference point or calculate closest
+                # For now, we will just return generic emergency info
+                pass
+
             return JsonResponse({
-                'error': 'No police officers available in your area'
-            }, status=503)
+                'success': True,
+                'alert_id': str(alert.id) if 'alert' in locals() else 'emergency_call',
+                'officer': None,
+                'backup_mode': True,
+                'emergency_contacts': [
+                    {'name': 'Police Control Room', 'number': '100'},
+                    {'name': 'Ambulance', 'number': '108'},
+                    {'name': 'Women Helpline', 'number': '1091'}
+                ],
+                'message': 'No nearby patrol units detected. Please call emergency services immediately.'
+            })
         
         # Create emergency alert
         alert = EmergencyAlert.objects.create(
@@ -109,7 +129,8 @@ def trigger_sos(request):
             'officer': {
                 'name': nearest_officer.user_profile.full_name,
                 'badge': nearest_officer.badge_number,
-                'station': nearest_officer.station_name
+                'station': nearest_officer.station_name,
+                'phone': nearest_officer.user_profile.phone
             },
             'message': 'Emergency alert created successfully'
         })
