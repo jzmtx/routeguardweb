@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/police/me/', views_police.get_police_info, name='get_police_info'),
     path('api/police/update-location/', views_police.update_police_location, name='update_police_location'),
     path('api/police/active-alerts/', views_police.get_active_alerts, name='get_active_alerts'),
+    path('api/police/history/', views_police.get_alert_history, name='get_alert_history'),
     path('api/police/report-crime/', views_police.add_crime_report, name='add_crime_report'),
     path('api/police/post-news/', views_police.post_news_update, name='post_news_update'),
     path('api/news/latest/', views_police.get_safety_news, name='get_safety_news'),

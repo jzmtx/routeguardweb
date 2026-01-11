@@ -176,6 +176,44 @@ def get_active_alerts(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@require_http_methods(["GET"])
+def get_alert_history(request):
+    """
+    Get resolved/historical alerts for investigation
+    """
+    firebase_uid = request.session.get('firebase_uid')
+    is_police = request.session.get('is_police', False)
+    
+    if not firebase_uid or not is_police:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        police = PoliceAuthority.objects.get(firebase_uid=firebase_uid)
+        
+        # Get resolved alerts
+        alerts = EmergencyAlert.objects.filter(
+            status='resolved',
+            # assigned_officer=police # Optional: if we only want ones they handled
+        ).select_related('user').order_by('-created_at')[:50] # Limit to last 50
+        
+        history_data = []
+        for alert in alerts:
+            history_data.append({
+                'id': str(alert.id),
+                'user_name': alert.user.full_name,
+                'location_address': alert.alert_address or f"{alert.alert_latitude:.4f}, {alert.alert_longitude:.4f}",
+                'time': alert.alert_time.strftime('%Y-%m-%d %H:%M'),
+                'resolved_at': alert.updated_at.strftime('%Y-%m-%d %H:%M') if alert.updated_at else 'N/A',
+                'video_clips': alert.video_clips,
+                'audio_clips': alert.audio_clips if hasattr(alert, 'audio_clips') else []
+            })
+        
+        return JsonResponse({'success': True, 'history': history_data})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def add_crime_report(request):
