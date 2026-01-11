@@ -178,6 +178,12 @@ class PoliceAuthority(models.Model):
     verified_by_admin = models.BooleanField(default=False)
     verified_at = models.DateTimeField(null=True, blank=True)
     
+    # Live Duty Status
+    is_on_duty = models.BooleanField(default=False)
+    current_lat = models.FloatField(null=True, blank=True)
+    current_lng = models.FloatField(null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

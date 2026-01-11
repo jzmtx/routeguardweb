@@ -328,6 +328,10 @@ function displayRouteResults(routes, recommendedIndex) {
                     <div>Safety Zones</div>
                     <div class="detail-value">${route.safety_zone_count}</div>
                 </div>
+                <div class="detail-item">
+                    <div>Active Police</div>
+                    <div class="detail-value" style="color: #3b82f6; font-weight: bold;">👮 ${countPoliceOnRoute(route.coordinates)}</div>
+                </div>
             </div>
             <div style="margin-top: 12px; font-size: 0.75rem; color: #94a3b8;">
                 ${route.details}
@@ -664,5 +668,85 @@ function getPriorityColor(priority) {
     }
 }
 
-// Initial fetch
-setTimeout(fetchSafetyNews, 2000);
+// ========== Police Tracking Layer ==========
+let policeLayer = L.layerGroup();
+let policeInterval = null;
+
+function initializePoliceTracking() {
+    policeLayer.addTo(state.map);
+    fetchActivePolice();
+    policeInterval = setInterval(fetchActivePolice, 15000); // Poll every 15s
+}
+
+async function fetchActivePolice() {
+    try {
+        const response = await fetch('/api/police/nearby/');
+        const data = await response.json();
+        
+        if (data.success) {
+            updatePoliceMarkers(data.police);
+        }
+    } catch (error) {
+        console.error('Error fetching police:', error);
+    }
+}
+
+function updatePoliceMarkers(policeList) {
+    policeLayer.clearLayers();
+    
+    // Global store for route calculation usage
+    window.activePoliceData = policeList;
+    
+    policeList.forEach(p => {
+        const icon = L.divIcon({
+            className: 'police-icon',
+            html: '<div style="font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🚓</div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        
+        L.marker([p.lat, p.lng], { icon: icon })
+            .bindPopup(`<b>Police Unit ${p.id}</b><br>${p.station}<br>Status: On Duty`)
+            .addTo(policeLayer);
+    });
+}
+
+// Helper to count police near a route
+function countPoliceOnRoute(routeCoords) {
+    if (!window.activePoliceData) return 0;
+    
+    const BUFFER_KM = 0.5; // 500m buffer
+    let visiblePolice = new Set();
+    
+    routeCoords.forEach(coord => {
+        window.activePoliceData.forEach(p => {
+            const dist = getDistance(coord[0], coord[1], p.lat, p.lng); // Simple Haversine needed or approximated
+             if (dist <= BUFFER_KM) {
+                visiblePolice.add(p.id);
+            }
+        });
+    });
+    
+    return visiblePolice.size;
+}
+
+// Simple Distance Helper (Haversine)
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+
+// Initialize fetch
+initializePoliceTracking();

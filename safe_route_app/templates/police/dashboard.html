@@ -206,6 +206,31 @@
         .leaflet-popup-tip {
             background-color: var(--bg-card);
         }
+
+        /* Toggle Switch */
+        .slider.round:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--success-color);
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px var(--success-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 
@@ -219,6 +244,19 @@
             <div id="officer-name" class="officer-name">Loading...</div>
             <div id="badge-number" class="badge-info">Loading...</div>
             <div id="station-name" class="badge-info" style="color: var(--accent-color)"></div>
+
+            <div
+                style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
+                <span class="badge-info">Duty Status:</span>
+                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                    <input type="checkbox" id="duty-toggle" onchange="toggleDutyStatus()">
+                    <span class="slider round"
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+                </label>
+            </div>
+            <div id="duty-text"
+                style="font-size: 0.75rem; color: #ef4444; margin-top: 4px; text-align: right; font-weight: bold;">🔴
+                OFF DUTY</div>
         </div>
 
         <div class="alerts-section">
@@ -695,6 +733,93 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Post";
+            }
+        }
+
+        // --- Duty Status & Live Location ---
+        let dutyInterval = null;
+        let isOnDuty = false;
+
+        function toggleDutyStatus() {
+            const toggle = document.getElementById('duty-toggle');
+            const text = document.getElementById('duty-text');
+            isOnDuty = toggle.checked;
+
+            if (isOnDuty) {
+                text.textContent = "🟢 ON DUTY & TRACKING";
+                text.style.color = "var(--success-color)";
+                startLocationSync();
+            } else {
+                text.textContent = "🔴 OFF DUTY";
+                text.style.color = "var(--danger-color)";
+                stopLocationSync();
+                // Send one last update to mark as offline
+                updateServerLocation(null, null, false);
+            }
+        }
+
+        function startLocationSync() {
+            if (dutyInterval) clearInterval(dutyInterval);
+
+            // Immediate first update
+            syncLocation();
+
+            // Interval every 10 seconds
+            dutyInterval = setInterval(syncLocation, 10000);
+        }
+
+        function stopLocationSync() {
+            if (dutyInterval) {
+                clearInterval(dutyInterval);
+                dutyInterval = null;
+            }
+        }
+
+        function syncLocation() {
+            if (!navigator.geolocation) return;
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+
+                // Update local map marker (blue dot)
+                updateMyMarker(latitude, longitude);
+
+                // Send to server
+                updateServerLocation(latitude, longitude, true);
+            }, error => {
+                console.error("Location error", error);
+            });
+        }
+
+        let myLocationMarker = null;
+        function updateMyMarker(lat, lng) {
+            if (!myLocationMarker) {
+                myLocationMarker = L.circleMarker([lat, lng], {
+                    radius: 8,
+                    fillColor: "#3b82f6",
+                    color: "#fff",
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map).bindPopup("My Current Location");
+            } else {
+                myLocationMarker.setLatLng([lat, lng]);
+            }
+        }
+
+        async function updateServerLocation(lat, lng, dutyStatus) {
+            try {
+                await fetch('/api/police/update-location/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        is_on_duty: dutyStatus
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to sync location", e);
             }
         }
 

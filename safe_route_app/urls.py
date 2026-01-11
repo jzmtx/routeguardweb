@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/police/report-crime/', views_police.add_crime_report, name='add_crime_report'),
     path('api/police/post-news/', views_police.post_news_update, name='post_news_update'),
     path('api/news/latest/', views_police.get_safety_news, name='get_safety_news'),
+    path('api/police/nearby/', views_police.get_nearby_police, name='get_nearby_police'),
     
     # SOS Emergency Routes
     path('api/sos/trigger/', views_sos.trigger_sos, name='trigger_sos'),

@@ -59,11 +59,15 @@ def get_police_info(request):
         return JsonResponse({'authenticated': True, 'is_police': False}, status=403)
 
 
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def update_police_location(request):
     """
-    Update police officer's current location
+    Update police officer's current live location and duty status
     """
     firebase_uid = request.session.get('firebase_uid')
     is_police = request.session.get('is_police', False)
@@ -75,30 +79,51 @@ def update_police_location(request):
         data = json.loads(request.body)
         latitude = data.get('latitude')
         longitude = data.get('longitude')
-        
-        if not latitude or not longitude:
-            return JsonResponse({'error': 'Missing coordinates'}, status=400)
+        is_on_duty = data.get('is_on_duty', True)
         
         police = PoliceAuthority.objects.get(firebase_uid=firebase_uid)
         
-        # Update jurisdiction center to current location
-        police.jurisdiction_lat = latitude
-        police.jurisdiction_lng = longitude
+        # Update live location
+        if latitude and longitude:
+            police.current_lat = latitude
+            police.current_lng = longitude
+            
+        police.is_on_duty = is_on_duty
         police.save()
         
         return JsonResponse({
             'success': True,
-            'message': 'Location updated successfully',
-            'location': {
-                'lat': latitude,
-                'lng': longitude
-            }
+            'message': 'Location/Status updated successfully',
+            'is_on_duty': police.is_on_duty
         })
         
     except PoliceAuthority.DoesNotExist:
         return JsonResponse({'error': 'Police profile not found'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_nearby_police(request):
+    """
+    Get all active police officers for user map
+    """
+    # Optional: Filter by lat/lng bounds if provided
+    try:
+        active_police = PoliceAuthority.objects.filter(is_on_duty=True)
+        
+        police_data = []
+        for p in active_police:
+            if p.current_lat and p.current_lng:
+                police_data.append({
+                    'id': p.badge_number,
+                    'station': p.station_name,
+                    'lat': p.current_lat,
+                    'lng': p.current_lng,
+                    'type': 'police_car' # placeholder for icon type
+                })
+        
+        return JsonResponse({'success': True, 'police': police_data})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
