@@ -296,6 +296,7 @@ class SafetyNews(models.Model):
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='low')
     
     region_tag = models.CharField(max_length=100, blank=True, help_text="e.g., 'Downtown', 'Indiranagar'")
+    image_url = models.URLField(blank=True, null=True, help_text="URL to image in Firebase Storage")
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

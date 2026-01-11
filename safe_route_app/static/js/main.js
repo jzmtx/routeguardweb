@@ -96,6 +96,8 @@ function attachEventListeners() {
     document.getElementById('location-search').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchLocation();
     });
+
+    document.getElementById('search-dest-btn').addEventListener('click', searchDestination);
 }
 
 // ========== Authentication ==========
@@ -533,6 +535,37 @@ async function searchLocation() {
     }
 }
 
+async function searchDestination() {
+    const query = prompt('Enter destination to search:');
+    if (!query) return;
+
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const results = await response.json();
+        
+        if (results.length === 0) {
+            showToast('Destination not found', 'warning');
+            return;
+        }
+        
+        const location = results[0];
+        const lat = parseFloat(location.lat);
+        const lon = parseFloat(location.lon);
+        
+        state.map.setView([lat, lon], 13);
+        setEndPoint(lat, lon);
+        showToast(`Destination set: ${location.display_name}`, 'success');
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        showToast('Error searching destination', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // ========== UI Utilities ==========
 function showLoading(show) {
     const overlay = document.getElementById('loading-overlay');
@@ -614,6 +647,7 @@ function updateNewsUI(newsItems) {
             </div>
             <h4 style="color: white; margin-bottom: 6px; font-size: 1rem;">${item.title}</h4>
             <p style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.4;">${item.content}</p>
+            ${item.image_url ? `<img src="${item.image_url}" style="width: 100%; border-radius: 4px; margin-top: 8px; max-height: 200px; object-fit: cover;">` : ''}
             <div style="margin-top: 8px; font-size: 0.75rem; color: #94a3b8;">
                 Posted by: ${item.author}
             </div>

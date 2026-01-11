@@ -205,7 +205,8 @@ def post_news_update(request):
             title=data.get('title'),
             content=data.get('content'),
             priority=data.get('priority', 'low'),
-            region_tag=data.get('region', '')
+            region_tag=data.get('region', ''),
+            image_url=data.get('image_url', '')
         )
         
         return JsonResponse({'success': True, 'id': news.id})
@@ -230,7 +231,8 @@ def get_safety_news(request):
                 'content': n.content,
                 'priority': n.priority,
                 'date': n.created_at.strftime('%Y-%m-%d %H:%M'),
-                'author': n.author.station_name
+                'author': n.author.station_name,
+                'image_url': n.image_url
             } for n in news_items]
         })
     except Exception as e:
