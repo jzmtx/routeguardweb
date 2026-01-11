@@ -24,7 +24,12 @@
     <link rel="stylesheet" href="/static/css/professional_override.css">
     <link rel="stylesheet" href="/static/css/sos_styles.css">
     <style>
-        /* Mobile Specific Overrides Inline for immediate effect */
+        /* Mobile elements hidden by default */
+        .mobile-only {
+            display: none !important;
+        }
+
+        /* Mobile View: Show mobile elements, hide desktop elements */
         @media (max-width: 768px) {
             .mobile-only {
                 display: flex !important;
@@ -32,16 +37,6 @@
 
             .desktop-only {
                 display: none !important;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .mobile-only {
-                display: none !important;
-            }
-
-            .desktop-only {
-                display: flex !important;
             }
         }
     </style>
@@ -76,7 +71,8 @@
                 <!-- ... other stats ... -->
                 <div class="auth-controls">
                     <span id="user-email" style="color: #94a3b8; margin-right: 12px; display: none;"></span>
-                    <button id="logout-btn" class="btn-secondary" style="display: none;">Logout</button>
+                    <button id="logout-btn" class="btn-secondary" onclick="logoutUser()"
+                        style="display: none;">Logout</button>
                 </div>
             </div>
         </div>
@@ -136,10 +132,14 @@
                     <div id="routes-container"></div>
                 </div>
 
-                <!-- Desktop Options -->
                 <div class="sidebar-section">
                     <h3>⚙️ Options</h3>
                     <button id="generate-sample-data" class="btn-secondary">Generate Data</button>
+                    <label for="csv-upload" class="btn-secondary"
+                        style="margin-top: 8px; cursor: pointer; text-align: center; display: block;">
+                        Upload Crime CSV
+                    </label>
+                    <input type="file" id="csv-upload" accept=".csv" style="display: none;">
                 </div>
             </div>
         </aside>
@@ -223,14 +223,30 @@
 
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- News Panel (Hidden primarily) -->
-    <div id="news-panel" style="display:none;"></div>
+    <!-- News Panel Overlay -->
+    <div id="news-panel"
+        style="position: fixed; top: 70px; right: -400px; width: 350px; background: #1e293b; bottom: 20px; z-index: 3000; border-radius: 12px 0 0 12px; box-shadow: -4px 0 20px rgba(0,0,0,0.5); transition: right 0.3s ease; padding: 20px; overflow-y: auto; border-left: 1px solid #334155;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+            <h3 style="color: white; margin: 0;">📢 Safety Updates</h3>
+            <button onclick="toggleNewsPanel()"
+                style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.25rem;">✕</button>
+        </div>
+        <div id="news-feed-content">
+            <p style="color: #94a3b8; text-align: center;">Loading updates...</p>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-storage-compat.js"></script>
-    <script src="/static/js/firebase-config.js"></script>
+    <script>
+        const firebaseConfig = {{ firebase_config| safe }};
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
@@ -280,6 +296,38 @@
 
         function openMobileOptions() {
             showToast("More options available on Desktop view", "info");
+        }
+
+        async function logoutUser() {
+            if (!confirm("Are you sure you want to logout?")) return;
+            try {
+                if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+                    await firebase.auth().signOut();
+                }
+                await fetch('/auth/logout/');
+                window.location.reload();
+            } catch (e) {
+                console.error("Logout failed", e);
+                window.location.reload();
+            }
+        }
+
+        if (typeof firebase !== 'undefined') {
+            firebase.auth().onAuthStateChanged((user) => {
+                const emailSpan = document.getElementById('user-email');
+                const logoutBtn = document.getElementById('logout-btn');
+
+                if (user) {
+                    if (emailSpan) {
+                        emailSpan.textContent = user.email;
+                        emailSpan.style.display = 'inline';
+                    }
+                    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                } else {
+                    if (emailSpan) emailSpan.style.display = 'none';
+                    if (logoutBtn) logoutBtn.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

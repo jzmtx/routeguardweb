@@ -16,6 +16,8 @@ from .utils.gemini_service import explain_route, get_gemini_advisor
 from .models import CrimePoint, SafetyZone
 
 
+from .views_auth import get_firebase_config
+
 def index(request):
     """
     Render the main map interface.
@@ -24,6 +26,7 @@ def index(request):
         'crime_count': CrimePoint.objects.count(),
         'safety_zone_count': SafetyZone.objects.count(),
         'has_gemini': bool(get_gemini_advisor().enabled),
+        'firebase_config': get_firebase_config(),
     }
     return render(request, 'index.html', context)
 
