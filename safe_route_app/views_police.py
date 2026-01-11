@@ -143,9 +143,11 @@ def get_active_alerts(request):
         police = PoliceAuthority.objects.get(firebase_uid=firebase_uid)
         
         # Get alerts assigned to this officer or in their jurisdiction
+        # Get alerts assigned to this officer, OR unassigned (broadcast)
+        from django.db.models import Q
         alerts = EmergencyAlert.objects.filter(
-            status='active',
-            assigned_officer=police
+            Q(assigned_officer=police) | Q(assigned_officer__isnull=True),
+            status='active'
         ).select_related('user').order_by('-alert_time')
         
         alerts_data = []
@@ -160,6 +162,7 @@ def get_active_alerts(request):
                     'address': alert.alert_address
                 },
                 'alert_time': alert.alert_time.isoformat(),
+                'last_updated': alert.updated_at.isoformat() if alert.updated_at else alert.alert_time.isoformat(),
                 'status': alert.status,
                 'video_clips': alert.video_clips
             })

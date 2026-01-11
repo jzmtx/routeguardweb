@@ -677,17 +677,28 @@
             alerts.forEach(alert => {
                 currentAlertIds.add(alert.id);
 
+                // Check Staleness
+                let isStale = false;
+                let statusBadge = '<span class="alert-badge">SOS ACTIVE</span>';
+                if (alert.last_updated) {
+                    const diff = (new Date() - new Date(alert.last_updated)) / 1000 / 60;
+                    if (diff > 2) {
+                        isStale = true;
+                        statusBadge = '<span class="alert-badge" style="background:#f59e0b; animation:none;">⚠️ SIGNAL LOST</span>';
+                    }
+                }
+
                 // Add to sidebar
                 const card = document.createElement('div');
                 card.className = 'alert-card';
                 card.innerHTML = `
                     <div class="alert-header">
-                        <span class="alert-badge">SOS ACTIVE</span>
-                        <span style="font-size: 0.75rem;">Now</span>
+                        ${statusBadge}
+                        <span style="font-size: 0.75rem;">${alert.alert_time.substr(11, 5)}</span>
                     </div>
                     <div class="user-name">${alert.user_name}</div>
                     <div class="alert-time">${alert.location.address || 'Unknown Location'}</div>
-                    <button onclick="respondToAlert('${alert.id}')" style="margin-top: 10px; width: 100%; background: var(--danger-color); color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer;">Respond</button>
+                    <button onclick='window.respondToAlert(${JSON.stringify(alert)})' style="margin-top: 10px; width: 100%; background: var(--danger-color); color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer;">Respond</button>
                 `;
                 card.onclick = () => {
                     map.setView([alert.location.lat, alert.location.lng], 16);
@@ -696,22 +707,34 @@
 
                 // Update or Add Map Marker
                 if (!markers.alerts[alert.id]) {
+                    const markerIcon = isStale ? icons.police : icons.alert; // Use different icon or CSS filter if possible
+                    // Ideally create a specific 'disconnected' icon
+
                     const marker = L.marker([alert.location.lat, alert.location.lng], {
-                        icon: icons.alert
+                        icon: icons.alert,
+                        opacity: isStale ? 0.6 : 1
                     }).addTo(map);
 
-                    marker.bindPopup(`
-                        <b>SOS ALERT</b><br>
+                    const popupContent = `
+                        <b>${isStale ? '⚠️ SIGNAL LOST' : 'SOS ALERT'}</b><br>
                         User: ${alert.user_name}<br>
                         Phone: ${alert.user_phone}<br>
-                        <button onclick="respondToAlert('${alert.id}')">Respond Now</button>
-                    `);
+                        <button onclick='window.respondToAlert(${JSON.stringify(alert)})'>Respond Now</button>
+                    `;
+                    marker.bindPopup(popupContent);
 
                     markers.alerts[alert.id] = marker;
 
-                    // Trigger sound/notification here if needed
+                    if (isStale) {
+                        // Add a grey circle to indicate stale
+                        L.circle([alert.location.lat, alert.location.lng], { radius: 20, color: 'grey' }).addTo(map);
+                    }
+
                 } else {
                     markers.alerts[alert.id].setLatLng([alert.location.lat, alert.location.lng]);
+                    // Update opacity if stale logic changes dynamically
+                    if (isStale) markers.alerts[alert.id].setOpacity(0.6);
+                    else markers.alerts[alert.id].setOpacity(1);
                 }
             });
 
@@ -758,27 +781,62 @@
 
         let currentResponseAlertId = null;
 
-        async function respondToAlert(alertId) {
-            currentResponseAlertId = alertId;
+        async function respondToAlert(alert) {
+            // alert arg can be ID or object. Handle both.
+            let alertObj = typeof alert === 'string' ? null : alert;
+
+            // If string ID passed (from popup button), find the object or mock it
+            if (!alertObj && typeof alert === 'string') {
+                // Try to look it up from markers if possible, or fallback
+                // Ideally we should pass the full object in the onclick handler in HTML
+                alertObj = { id: alert, user_name: "User #" + alert.substr(0, 4), status: 'active' };
+            }
+
+            currentResponseAlertId = alertObj.id;
             document.getElementById('response-panel').style.display = 'block';
             document.getElementById('response-minimized').style.display = 'none';
 
-            // In a real app, looking up alert details
-            document.getElementById('response-victim-name').textContent = "User #" + alertId.substr(0, 4);
-            document.getElementById('response-status').textContent = 'Status: ESTABLISHED';
-            document.getElementById('response-status').style.color = '#10b981';
+            document.getElementById('response-victim-name').textContent = alertObj.user_name || "User";
 
-            // Simulate media feed connection and location track
-            // Ideally we subscribe to the location update here
-            document.getElementById('media-placeholder').innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-                    <div style="color:#10b981; font-weight:bold;">● LIVE FEED ACTIVE</div>
-                    <div style="font-size:0.8em; color:#94a3b8;">
-                         📍 Live Location Tracking Enabled<br>
-                         Last update: Just now
-                    </div>
-                </div>
-             `;
+            // Check staleness
+            if (alertObj.last_updated) {
+                const lastUpdate = new Date(alertObj.last_updated);
+                const now = new Date();
+                const diffMinutes = (now - lastUpdate) / 1000 / 60;
+
+                if (diffMinutes > 2) {
+                    document.getElementById('response-status').textContent = 'Status: SIGNAL LOST';
+                    document.getElementById('response-status').style.color = '#f59e0b'; // orange
+
+                    document.getElementById('media-placeholder').innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; color:#f59e0b;">
+                            <div style="font-weight:bold;">⚠️ CONNECTION INTERRUPTED</div>
+                            <div style="font-size:0.8em; color:#94a3b8;">
+                                 Last signal: ${Math.round(diffMinutes)} mins ago<br>
+                                 Location may be stale.
+                            </div>
+                        </div>
+                     `;
+                } else {
+                    document.getElementById('response-status').textContent = 'Status: ESTABLISHED';
+                    document.getElementById('response-status').style.color = '#10b981';
+
+                    document.getElementById('media-placeholder').innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                            <div style="color:#10b981; font-weight:bold;">● LIVE FEED ACTIVE</div>
+                            <div style="font-size:0.8em; color:#94a3b8;">
+                                📍 Live Location Tracking Enabled<br>
+                                Last update: Just now
+                            </div>
+                        </div>
+                     `;
+                }
+            } else {
+                // Legacy fallback or immediate response
+                document.getElementById('response-status').textContent = 'Status: ESTABLISHED';
+                document.getElementById('response-status').style.color = '#10b981';
+                document.getElementById('media-placeholder').innerHTML = '<div style="color:#10b981">● LIVE FEED ACTIVE</div>';
+            }
         }
 
         function minimizeResponsePanel() {

@@ -85,29 +85,53 @@ def trigger_sos(request):
         # Find nearest police officer
         nearest_officer = find_nearest_police(latitude, longitude)
         
+        # Create emergency alert (assigned_officer might be None)
+        alert = EmergencyAlert.objects.create(
+            user=user,
+            alert_latitude=latitude,
+            alert_longitude=longitude,
+            alert_address='',  # Will be geocoded later
+            status='active',
+            assigned_officer=nearest_officer
+        )
+
         if not nearest_officer:
             # Fallback: No police found nearby
-            # Return nearest station coordinates (if any) or just emergency numbers
-            
             # Find closest station regardless of jurisdiction
-            backup_officer = None
             police_officers = PoliceAuthority.objects.filter(verified_by_admin=True)
+            nearest_station_info = None
+            
             if police_officers.exists():
-                # Simple logic to just pick the first one as a reference point or calculate closest
-                # For now, we will just return generic emergency info
-                pass
+                # Find closest police station
+                min_dist = float('inf')
+                closest_cop = None
+                
+                for cop in police_officers:
+                    dist = haversine_distance(latitude, longitude, cop.jurisdiction_lat, cop.jurisdiction_lng)
+                    if dist < min_dist:
+                        min_dist = dist
+                        closest_cop = cop
+                
+                if closest_cop:
+                    nearest_station_info = {
+                        'name': closest_cop.station_name,
+                        'distance': f"{min_dist:.1f} km",
+                        'lat': closest_cop.jurisdiction_lat,
+                        'lng': closest_cop.jurisdiction_lng
+                    }
 
             return JsonResponse({
                 'success': True,
-                'alert_id': str(alert.id) if 'alert' in locals() else 'emergency_call',
+                'alert_id': str(alert.id),
                 'officer': None,
                 'backup_mode': True,
+                'nearest_station': nearest_station_info,
                 'emergency_contacts': [
                     {'name': 'Police Control Room', 'number': '100'},
                     {'name': 'Ambulance', 'number': '108'},
                     {'name': 'Women Helpline', 'number': '1091'}
                 ],
-                'message': 'No nearby patrol units detected. Please call emergency services immediately.'
+                'message': 'No nearby patrol units detected. Alert broadcast to all stations.'
             })
         
         # Create emergency alert

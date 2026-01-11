@@ -92,6 +92,15 @@ class SOSHandler {
                     const detailsContainer = document.querySelector('.notified-details');
                     let contactsHtml = '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">';
                     
+                    if (this.lastResponse.nearest_station) {
+                         contactsHtml += `
+                            <div style="background: #334155; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: white;">
+                                🏢 <strong>Nearest Station:</strong> ${this.lastResponse.nearest_station.name}<br>
+                                <span style="font-size: 0.9em; color: #94a3b8;">Distance: ${this.lastResponse.nearest_station.distance}</span>
+                            </div>
+                         `;
+                    }
+
                     this.lastResponse.emergency_contacts.forEach(contact => {
                         contactsHtml += `
                             <a href="tel:${contact.number}" style="background: #ef4444; color: white; padding: 12px; border-radius: 8px; text-decoration: none; text-align: center; font-weight: bold;">
