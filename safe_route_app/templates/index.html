@@ -241,8 +241,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-storage-compat.js"></script>
+    {{ firebase_config|json_script:"firebase-config-data" }}
     <script>
-        const firebaseConfig = {{ firebase_config| safe }};
+        const firebaseConfig = JSON.parse(document.getElementById('firebase-config-data').textContent);
         if (typeof firebase !== 'undefined' && !firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
