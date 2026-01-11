@@ -120,7 +120,10 @@
                     </div>
                     <div class="input-group">
                         <label>🎯 Destination</label>
-                        <input type="text" id="end-location" placeholder="Destination" readonly>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="end-location" placeholder="Destination" readonly style="flex: 1;">
+                            <button id="search-dest-btn" class="btn-secondary" style="padding: 8px;">🔍</button>
+                        </div>
                     </div>
                     <button id="calculate-route" class="btn-primary" disabled>Find Safest Route</button>
                     <button id="clear-route" class="btn-secondary" style="margin-top: 8px;">Clear</button>
@@ -203,6 +206,12 @@
     </div>
 
     <!-- Modals & Overlays -->
+    <!-- Recording Indicator -->
+    <div id="recording-indicator" class="recording-indicator">
+        <div class="recording-dot"></div>
+        <span>Recording Evidence: <span id="recording-time">00:00</span></span>
+    </div>
+
     <div class="sos-countdown-modal" id="sos-countdown">
         <div class="countdown-content">
             <div class="countdown-number" id="countdown-number">3</div>
