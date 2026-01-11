@@ -42,31 +42,45 @@ function initializeMap() {
     // Make map globally accessible
     window.map = state.map;
     
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+    // Add CartoDB Voyager tiles (Reliable & Good Looking)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors, © CartoDB',
         maxZoom: 19,
-        updateWhenIdle: true,
-        updateWhenZooming: false,
-        keepBuffer: 2
+        subdomains: 'abcd',
+        updateWhenIdle: true
     }).addTo(state.map);
     
     // Initialize layers
     state.crimeLayer = L.layerGroup().addTo(state.map);
     state.safetyZoneLayer = L.layerGroup().addTo(state.map);
     
-    // Try to get user's location
+    // Dispatch MapReady event for dependent scripts
+    window.dispatchEvent(new Event('MapReady'));
+    
+    // Try to get user's location with better options
     if (navigator.geolocation) {
+        const geoOptions = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                state.map.setView([latitude, longitude], 13);
-                showToast('Location detected', 'success');
+                // Check if map is valid before using
+                if (state.map) {
+                    state.map.setView([latitude, longitude], 13);
+                    showToast('Location detected', 'success');
+                }
             },
             (error) => {
-                console.log('Geolocation error:', error);
-                showToast('Using default location', 'info');
-            }
+                console.warn('Geolocation warning:', error.message);
+                // Don't show toast for default behavior to avoid annoyance, just log it
+                // specific errors can be handled if needed
+                if(error.code === 1) showToast('Location permission denied', 'warning');
+            },
+            geoOptions
         );
     }
     

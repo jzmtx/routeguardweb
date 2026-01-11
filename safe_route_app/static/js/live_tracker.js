@@ -334,10 +334,24 @@ class LiveTracker {
     }
 }
 
-// Initialize live tracker
+// Initialize live tracker safely
 document.addEventListener('DOMContentLoaded', () => {
-    window.liveTracker = new LiveTracker();
-    console.log('✅ Live Tracker initialized');
+    function initTracker() {
+        if (!window.liveTracker) { // Prevent double init
+            window.liveTracker = new LiveTracker();
+            console.log('✅ Live Tracker initialized');
+        }
+    }
+
+    if (window.map) {
+        initTracker();
+    } else {
+        window.addEventListener('MapReady', initTracker);
+        // Fallback check
+        setTimeout(() => {
+             if(window.map && !window.liveTracker) initTracker();
+        }, 1000);
+    }
 });
 
 // Add CSS for pulse animation
