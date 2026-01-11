@@ -256,11 +256,24 @@ async function calculateRoute() {
 
 async function processRoutes(routes) {
     try {
-        const routeData = routes.map(route => ({
-            coordinates: route.coordinates.map(coord => [coord.lat, coord.lng]),
-            distance: route.summary.totalDistance / 1000,
-            duration: route.summary.totalTime / 60
-        }));
+        const routeData = routes.map(route => {
+             // Sample coordinates to drastically reduce payload size (take every 10th point)
+             // OSRM returns very high density points
+             const sampledCoords = route.coordinates.filter((_, index) => index % 10 === 0).map(coord => [coord.lat, coord.lng]);
+             // Always include start and end points
+             if (route.coordinates.length > 0) {
+                 const start = route.coordinates[0];
+                 const end = route.coordinates[route.coordinates.length - 1];
+                 if (sampledCoords[0][0] !== start.lat) sampledCoords.unshift([start.lat, start.lng]);
+                 if (sampledCoords[sampledCoords.length-1][0] !== end.lat) sampledCoords.push([end.lat, end.lng]);
+             }
+             
+             return {
+                coordinates: sampledCoords,
+                distance: route.summary.totalDistance / 1000, // km
+                duration: route.summary.totalTime / 60         // min
+             };
+        });
         
         const response = await fetch('/api/calculate-route/', {
             method: 'POST',

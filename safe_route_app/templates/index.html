@@ -221,13 +221,30 @@
     </div>
 
     <div class="police-notified-screen" id="police-notified">
-        <div class="notified-icon">✅</div>
-        <h2 class="notified-title">Police Notified</h2>
-        <div class="notified-details">
-            <p><strong>Officer:</strong> <span id="officer-name-display">Connecting...</span></p>
-            <p><strong>Status:</strong> <span id="alert-status">Active</span></p>
+        <div class="notified-header" style="width: 100%; display: flex; justify-content: flex-end; padding: 20px;">
+            <button onclick="minimizeSOS()" class="btn-icon"
+                style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
         </div>
-        <button class="end-sos-btn" id="end-sos">End Emergency</button>
+        <div class="notified-content" style="text-align: center; margin-top: -40px;">
+            <div class="notified-icon">✅</div>
+            <h2 class="notified-title">Police Notified</h2>
+            <div class="notified-details">
+                <p><strong>Officer:</strong> <span id="officer-name-display">Connecting...</span></p>
+                <p><strong>Status:</strong> <span id="alert-status">Active</span></p>
+            </div>
+            <button class="end-sos-btn" id="end-sos">End Emergency</button>
+        </div>
+    </div>
+
+    <!-- Minimized SOS Status -->
+    <div id="sos-minimized-bar" onclick="maximizeSOS()"
+        style="display: none; position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); z-index: 2000; align-items: center; gap: 10px; cursor: pointer; animation: pulse-red 2s infinite;">
+        <span style="font-weight: 600;">⚠️ SOS Active</span>
+        <span style="font-size: 0.9em; opacity: 0.9;">• Tap to Expand</span>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
@@ -306,6 +323,19 @@
 
         function openMobileOptions() {
             showToast("More options available on Desktop view", "info");
+        }
+        function minimizeSOS() {
+            document.getElementById('police-notified').classList.remove('active');
+            // Hide the screen but show the minimized bar
+            // Note: class 'active' handles visibility usually, but we might need explicit display control if CSS is strict
+            document.getElementById('police-notified').style.display = 'none';
+            document.getElementById('sos-minimized-bar').style.display = 'flex';
+        }
+
+        function maximizeSOS() {
+            document.getElementById('police-notified').style.display = 'flex';
+            // We can re-add active if needed, but display:flex forces it
+            document.getElementById('sos-minimized-bar').style.display = 'none';
         }
 
         async function logoutUser() {
