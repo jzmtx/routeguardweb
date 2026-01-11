@@ -23,11 +23,33 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/professional_override.css">
     <link rel="stylesheet" href="/static/css/sos_styles.css">
+    <style>
+        /* Mobile Specific Overrides Inline for immediate effect */
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: flex !important;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+
+            .desktop-only {
+                display: flex !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
+    <!-- Desktop Header -->
+    <header class="header desktop-only">
         <div class="header-content">
             <div class="logo">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -43,151 +65,144 @@
                 <h1>RouteGuard</h1>
             </div>
             <div class="header-stats">
-                <!-- Safety News Bell -->
-                <div class="stat" id="news-bell" style="cursor: pointer; position: relative;"
-                    onclick="toggleNewsPanel()">
-                    <span style="font-size: 1.25rem;">🔔</span>
-                    <span id="news-badge"
-                        style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; display: none;"></span>
+                <div class="stat" id="news-bell" onclick="toggleNewsPanel()">
+                    <span>🔔</span>
+                    <span id="news-badge" style="display: none;"></span>
                 </div>
-
                 <div class="stat">
                     <span class="stat-value">{{ crime_count }}</span>
                     <span class="stat-label">Points</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-value">{{ safety_zone_count }}</span>
-                    <span class="stat-label">Zones</span>
-                </div>
+                <!-- ... other stats ... -->
                 <div class="auth-controls">
                     <span id="user-email" style="color: #94a3b8; margin-right: 12px; display: none;"></span>
-                    <button id="logout-btn" class="btn-secondary"
-                        style="display: none; padding: 4px 10px; font-size: 0.75rem;">Logout</button>
+                    <button id="logout-btn" class="btn-secondary" style="display: none;">Logout</button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- News Panel Overlay -->
-    <div id="news-panel"
-        style="position: fixed; top: 70px; right: -100%; width: 100%; max-width: 350px; background: #1e293b; bottom: 0; z-index: 3000; border-radius: 12px 0 0 0; box-shadow: -4px 0 20px rgba(0,0,0,0.5); transition: right 0.3s ease; padding: 20px; overflow-y: auto; border-left: 1px solid #334155;">
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-            <h3 style="color: white; margin: 0;">📢 Safety Updates</h3>
-            <button onclick="toggleNewsPanel()"
-                style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.25rem;">✕</button>
+    <!-- Mobile Top Bar -->
+    <div class="mobile-top-bar mobile-only">
+        <div class="glass-search">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="mobile-search-input" placeholder="Search for destination..."
+                onkeypress="handleMobileSearch(event)">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
         </div>
-        <div id="news-feed-content">
-            <p style="color: #94a3b8; text-align: center;">Loading updates...</p>
+        <div class="stats-chips">
+            <div class="stat-chip">{{ crime_count }} Crime Hotspots</div>
+            <div class="stat-chip">{{ safety_zone_count }} Safe Zones</div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Sidebar Backdrop for Mobile -->
-        <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
+        <!-- Desktop Sidebar -->
+        <aside class="sidebar desktop-only">
             <div class="sidebar-content">
-                <!-- Location Search -->
                 <div class="sidebar-section">
                     <h3>🔍 Search Location</h3>
                     <div class="input-group">
-                        <input type="text" id="location-search" placeholder="Search city or landmark..."
-                            class="search-input">
-                        <button id="search-button" class="btn-primary" style="margin-top: 8px;">
-                            Search
-                        </button>
+                        <input type="text" id="location-search" placeholder="Search city..." class="search-input">
+                        <button id="search-button" class="btn-primary" style="margin-top: 8px;">Search</button>
                     </div>
                 </div>
 
-                <!-- Route Planning -->
                 <div class="sidebar-section">
                     <h3>🗺️ Plan Your Route</h3>
-                    <p style="color: #94a3b8; font-size: 0.8125rem; margin-bottom: 12px;">Click map for points</p>
-
                     <div class="input-group">
                         <label>📍 Start</label>
                         <input type="text" id="start-location" placeholder="Origin" readonly>
-                        <button id="use-current-location" class="btn-secondary" style="margin-top: 6px;">
-                            Use My Location
-                        </button>
+                        <button id="use-current-location" class="btn-secondary">Use My Location</button>
                     </div>
-
                     <div class="input-group">
                         <label>🎯 Destination</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="end-location" placeholder="Destination" readonly style="flex: 1;">
-                            <button id="search-dest-btn" class="btn-secondary" style="padding: 8px;"
-                                title="Search Destination">
-                                🔍
-                            </button>
-                        </div>
+                        <input type="text" id="end-location" placeholder="Destination" readonly>
                     </div>
-
-                    <button id="calculate-route" class="btn-primary" disabled>
-                        Find Safest Route
-                    </button>
-                    <button id="clear-route" class="btn-secondary" style="margin-top: 8px;">
-                        Clear
-                    </button>
+                    <button id="calculate-route" class="btn-primary" disabled>Find Safest Route</button>
+                    <button id="clear-route" class="btn-secondary" style="margin-top: 8px;">Clear</button>
                 </div>
 
-                <!-- Route Results -->
+                <!-- Desktop Route Results -->
                 <div class="sidebar-section" id="route-results" style="display: none;">
                     <h3>🛣️ Route Options</h3>
                     <div id="routes-container"></div>
                 </div>
 
-                <!-- AI Explanation -->
-                <div class="sidebar-section" id="ai-section" style="display: none;">
-                    <h3>🤖 AI Safety Analysis</h3>
-                    <div id="ai-explanation"
-                        style="background: #334155; padding: 12px; border-radius: 6px; color: #cbd5e1; font-size: 0.8125rem; line-height: 1.5;">
-                    </div>
-                </div>
-
-                <!-- Data Management -->
+                <!-- Desktop Options -->
                 <div class="sidebar-section">
                     <h3>⚙️ Options</h3>
-                    <button id="generate-sample-data" class="btn-secondary">
-                        Generate Sample Data
-                    </button>
-                    <!-- Small Logout for Mobile here too maybe? No, header is enough -->
+                    <button id="generate-sample-data" class="btn-secondary">Generate Data</button>
                 </div>
             </div>
         </aside>
 
-        <!-- Map Container -->
+        <!-- Map -->
         <main class="map-container">
             <div id="map"></div>
-
             <!-- Loading Overlay -->
             <div id="loading-overlay" class="loading-overlay" style="display: none;">
                 <div class="spinner"></div>
-                <p style="color: #f1f5f9; margin-top: 16px;">Calculating safest routes...</p>
+                <p style="color: #f1f5f9;">Calculating safest routes...</p>
             </div>
         </main>
     </div>
 
-    <!-- Mobile Toggle Button -->
-    <button class="mobile-toggle" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-    </button>
+    <!-- Mobile Bottom Sheet -->
+    <div class="mobile-bottom-sheet mobile-only">
+        <div class="sheet-handle"></div>
+        <h2 class="sheet-title">Plan Your Journey</h2>
 
-    <!-- SOS Emergency Button -->
-    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;"
-        class="sos-wrapper">
+        <div class="sheet-input-group">
+            <div class="sheet-input-row">
+                <div class="sheet-icon">📍</div>
+                <input type="text" id="mobile-start-location" placeholder="Start Location" readonly
+                    onclick="showToast('Tap map for start point', 'info')">
+                <button class="icon-btn" onclick="useCurrentLocationMobile()">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sheet-input-row">
+                <div class="sheet-icon">🎯</div>
+                <input type="text" id="mobile-end-location" placeholder="Destination" readonly
+                    onclick="showToast('Tap map for destination', 'info')">
+            </div>
+        </div>
+
+        <button class="sheet-primary-btn" onclick="triggerRouteCalculation()">Find Safest Route</button>
+
+        <div class="sheet-actions">
+            <div class="text-muted" style="font-size: 0.8rem; color: #64748b;">
+                Generated Data & Uploads available on Desktop
+            </div>
+            <button class="icon-btn" onclick="openMobileOptions()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- SOS Button (Fixed Position) -->
+    <div class="sos-wrapper" style="position: fixed; z-index: 1000;">
         <button class="sos-button" id="sos-trigger" title="Emergency SOS">
             <span class="sos-icon">🆘</span>
-            <span class="sos-text">SOS</span>
         </button>
     </div>
 
-    <!-- SOS Countdown Modal -->
+    <!-- Modals & Overlays -->
     <div class="sos-countdown-modal" id="sos-countdown">
         <div class="countdown-content">
             <div class="countdown-number" id="countdown-number">3</div>
@@ -196,69 +211,76 @@
         </div>
     </div>
 
-    <!-- Recording Indicator -->
-    <div class="recording-indicator" id="recording-indicator">
-        <span class="pulse-dot"></span>
-        <span class="recording-text">Recording • Police Notified</span>
-        <span class="recording-time" id="recording-time">00:00</span>
-    </div>
-
-    <!-- Police Notified Screen -->
     <div class="police-notified-screen" id="police-notified">
         <div class="notified-icon">✅</div>
-        <h2 class="notified-title">Police Have Been Notified</h2>
-        <p class="notified-message">
-            Your location is being shared in real-time. Help is on the way. Stay calm and stay safe.
-        </p>
+        <h2 class="notified-title">Police Notified</h2>
         <div class="notified-details">
             <p><strong>Officer:</strong> <span id="officer-name-display">Connecting...</span></p>
-            <p><strong>ETA:</strong> <span id="officer-eta">Calculating...</span></p>
             <p><strong>Status:</strong> <span id="alert-status">Active</span></p>
         </div>
         <button class="end-sos-btn" id="end-sos">End Emergency</button>
     </div>
 
-    <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- News Panel (Hidden primarily) -->
+    <div id="news-panel" style="display:none;"></div>
+
     <!-- Scripts -->
-    <!-- Firebase SDK (Added specifically for Auth/News) -->
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-storage-compat.js"></script>
-
     <script src="/static/js/firebase-config.js"></script>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Leaflet Routing Machine -->
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
-    <!-- Custom JS -->
     <script src="/static/js/main.js"></script>
     <script src="/static/js/sos_handler.js"></script>
     <script src="/static/js/live_tracker.js"></script>
 
     <script>
-        // Start live tracking immediately
-        if (window.initializePoliceTracking) window.initializePoliceTracking();
-
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const backdrop = document.querySelector('.sidebar-backdrop');
-
-            if (sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                if (backdrop) backdrop.classList.remove('active');
-            } else {
-                sidebar.classList.add('open');
-                if (backdrop) backdrop.classList.add('active');
+        // Mobile Interactions Glue Code
+        function handleMobileSearch(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value;
+                // Reuse existing search logic by injecting into the main search input and clicking button
+                const mainInput = document.getElementById('location-search');
+                const mainBtn = document.getElementById('search-button');
+                if (mainInput && mainBtn) {
+                    mainInput.value = query;
+                    mainBtn.click();
+                    // Also scroll map into view if needed
+                }
             }
         }
 
-        // Ensure SOS button is accessible on mobile
-        // Adjusted positioning in CSS override logic below if needed
+        function useCurrentLocationMobile() {
+            // Trigger the desktop button
+            document.getElementById('use-current-location').click();
+        }
+
+        function triggerRouteCalculation() {
+            document.getElementById('calculate-route').click();
+        }
+
+        // Sync Desktop inputs to Mobile inputs (Observer pattern or simple polling/event)
+        const desktopStart = document.getElementById('start-location');
+        const desktopEnd = document.getElementById('end-location');
+        const mobileStart = document.getElementById('mobile-start-location');
+        const mobileEnd = document.getElementById('mobile-end-location');
+
+        function syncInputs() {
+            if (mobileStart && desktopStart) mobileStart.value = desktopStart.value;
+            if (mobileEnd && desktopEnd) mobileEnd.value = desktopEnd.value;
+        }
+
+        // Observer to watch for value changes on desktop inputs (which are set by map clicks)
+        setInterval(syncInputs, 500); // Polling is simplest and robust for this temp glue code
+
+        function openMobileOptions() {
+            showToast("More options available on Desktop view", "info");
+        }
     </script>
 </body>
 
