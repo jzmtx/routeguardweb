@@ -231,11 +231,91 @@
         input:checked+.slider:before {
             transform: translateX(20px);
         }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 320px;
+                transform: translateX(-100%);
+                /* Hidden by default */
+                transition: transform 0.3s ease;
+                z-index: 2000;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            /* Hamburger Menu */
+            .menu-toggle {
+                display: block !important;
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                background: var(--bg-card);
+                border: 1px solid #334155;
+                color: white;
+                padding: 8px;
+                border-radius: 6px;
+                cursor: pointer;
+                z-index: 1500;
+            }
+
+            .stats-overlay {
+                top: 60px;
+                /* Push down below hamburger */
+                left: 10px;
+                width: calc(100% - 20px);
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .stat-card {
+                flex: 1;
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            /* Modal Mobile */
+            .modal>div {
+                width: 90% !important;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+
+        /* Desktop specific */
+        .menu-toggle {
+            display: none;
+        }
     </style>
 </head>
 
 <body>
-    <aside class="sidebar">
+    <!-- Mobile Hamburger Button -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        ☰ Menu
+    </button>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()"
+        style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1900;">
+    </div>
+
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">🛡️ RouteGuard Command</div>
         </div>
@@ -282,6 +362,12 @@
                     style="background: var(--success); border: none; padding: 10px; border-radius: 6px; color: white; font-weight: 600; cursor: pointer;">
                     📢 Post Safety News
                 </button>
+                <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
+                    <button onclick="logoutPolice()"
+                        style="width: 100%; background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color); padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        🚪 Logout
+                    </button>
+                </div>
             </div>
         </div>
     </aside>
@@ -820,6 +906,40 @@
                 });
             } catch (e) {
                 console.error("Failed to sync location", e);
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+
+            if (sidebar.classList.contains('active')) {
+                overlay.style.display = 'block';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+        async function logoutPolice() {
+            if (!confirm("Are you sure you want to end your shift and logout?")) return;
+
+            try {
+                // 1. Firebase Signout
+                if (firebase.auth().currentUser) {
+                    await firebase.auth().signOut();
+                }
+
+                // 2. Clear Server Session
+                await fetch('/auth/logout/');
+
+                // 3. Mark off duty on UI just in case (server logic already kills session)
+                window.location.href = '/auth/login/';
+
+            } catch (e) {
+                console.error("Logout failed:", e);
+                // Force redirect anyway
+                window.location.href = '/auth/login/';
             }
         }
 
