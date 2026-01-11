@@ -556,3 +556,79 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
+
+
+// ========== Safety News & Updates ==========
+let isNewsPanelOpen = false;
+
+window.toggleNewsPanel = function() {
+    const panel = document.getElementById('news-panel');
+    const badge = document.getElementById('news-badge');
+    
+    if (isNewsPanelOpen) {
+        panel.style.right = '-400px';
+    } else {
+        panel.style.right = '20px';
+        // Clear badge on open
+        if(badge) badge.style.display = 'none';
+        // Refresh news
+        fetchSafetyNews();
+    }
+    isNewsPanelOpen = !isNewsPanelOpen;
+}
+
+async function fetchSafetyNews() {
+    try {
+        const response = await fetch('/api/news/latest/');
+        const data = await response.json();
+        
+        if (data.success && data.news) {
+            updateNewsUI(data.news);
+        }
+    } catch (error) {
+        console.error('Error fetching news:', error);
+    }
+}
+
+function updateNewsUI(newsItems) {
+    const container = document.getElementById('news-feed-content');
+    const badge = document.getElementById('news-badge');
+    
+    if (newsItems.length === 0) {
+        container.innerHTML = '<p style="color: #94a3b8; text-align: center;">No active safety updates.</p>';
+        return;
+    }
+    
+    // Check for high priority to show badge
+    const highPriorityCount = newsItems.filter(n => n.priority === 'high' || n.priority === 'critical').length;
+    if (highPriorityCount > 0 && badge && !isNewsPanelOpen) {
+        badge.textContent = highPriorityCount;
+        badge.style.display = 'flex';
+    }
+    
+    container.innerHTML = newsItems.map(item => `
+        <div style="background: rgba(255,255,255,0.05); border-left: 4px solid ${getPriorityColor(item.priority)}; padding: 12px; margin-bottom: 12px; border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: ${getPriorityColor(item.priority)}; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">${item.priority}</span>
+                <span style="color: #94a3b8; font-size: 0.75rem;">${item.date}</span>
+            </div>
+            <h4 style="color: white; margin-bottom: 6px; font-size: 1rem;">${item.title}</h4>
+            <p style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.4;">${item.content}</p>
+            <div style="margin-top: 8px; font-size: 0.75rem; color: #94a3b8;">
+                Posted by: ${item.author}
+            </div>
+        </div>
+    `).join('');
+}
+
+function getPriorityColor(priority) {
+    switch(priority) {
+        case 'critical': return '#ef4444'; // Red
+        case 'high': return '#f97316';     // Orange
+        case 'medium': return '#f59e0b';   // Amber
+        default: return '#3b82f6';         // Blue
+    }
+}
+
+// Initial fetch
+setTimeout(fetchSafetyNews, 2000);

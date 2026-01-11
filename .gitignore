@@ -34,3 +34,6 @@ Thumbs.db
 # Data files
 *.csv
 data/
+
+# Security
+serviceAccountKey.json

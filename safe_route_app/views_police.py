@@ -149,3 +149,89 @@ def get_active_alerts(request):
         return JsonResponse({'error': 'Police profile not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_crime_report(request):
+    """
+    Allow police to add a crime record manually
+    """
+    firebase_uid = request.session.get('firebase_uid')
+    is_police = request.session.get('is_police', False)
+    
+    if not firebase_uid or not is_police:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        from .models import CrimePoint
+        
+        crime = CrimePoint.objects.create(
+            crime_type=data.get('type'),
+            severity=data.get('severity', 2),
+            description=data.get('description'),
+            latitude=data.get('latitude'),
+            longitude=data.get('longitude'),
+            occurred_at=datetime.now(), # Or provided time
+            source='police_report',
+            is_sample_data=False
+        )
+        
+        return JsonResponse({'success': True, 'id': crime.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_news_update(request):
+    """
+    Allow police to post a news/safety update
+    """
+    firebase_uid = request.session.get('firebase_uid')
+    is_police = request.session.get('is_police', False)
+    
+    if not firebase_uid or not is_police:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        police = PoliceAuthority.objects.get(firebase_uid=firebase_uid)
+        data = json.loads(request.body)
+        from .models import SafetyNews
+        
+        news = SafetyNews.objects.create(
+            author=police,
+            title=data.get('title'),
+            content=data.get('content'),
+            priority=data.get('priority', 'low'),
+            region_tag=data.get('region', '')
+        )
+        
+        return JsonResponse({'success': True, 'id': news.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_safety_news(request):
+    """
+    Get latest safety news for users
+    """
+    try:
+        from .models import SafetyNews
+        news_items = SafetyNews.objects.filter(is_active=True).order_by('-created_at')[:10]
+        
+        return JsonResponse({
+            'success': True,
+            'news': [{
+                'id': n.id,
+                'title': n.title,
+                'content': n.content,
+                'priority': n.priority,
+                'date': n.created_at.strftime('%Y-%m-%d %H:%M'),
+                'author': n.author.station_name
+            } for n in news_items]
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

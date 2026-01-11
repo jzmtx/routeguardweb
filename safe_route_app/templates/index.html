@@ -43,6 +43,14 @@
                 <h1>RouteGuard</h1>
             </div>
             <div class="header-stats">
+                <!-- Safety News Bell -->
+                <div class="stat" id="news-bell" style="cursor: pointer; position: relative;"
+                    onclick="toggleNewsPanel()">
+                    <span style="font-size: 1.25rem;">🔔</span>
+                    <span id="news-badge"
+                        style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; display: none;"></span>
+                </div>
+
                 <div class="stat">
                     <span class="stat-value">{{ crime_count }}</span>
                     <span class="stat-label">Crime Points</span>
@@ -59,6 +67,20 @@
             </div>
         </div>
     </header>
+
+    <!-- News Panel Overlay -->
+    <div id="news-panel"
+        style="position: fixed; top: 70px; right: -400px; width: 350px; background: #1e293b; bottom: 20px; z-index: 3000; border-radius: 12px 0 0 12px; box-shadow: -4px 0 20px rgba(0,0,0,0.5); transition: right 0.3s ease; padding: 20px; overflow-y: auto; border-left: 1px solid #334155;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+            <h3 style="color: white; margin: 0;">📢 Safety Updates</h3>
+            <button onclick="toggleNewsPanel()"
+                style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.25rem;">✕</button>
+        </div>
+        <div id="news-feed-content">
+            <p style="color: #94a3b8; text-align: center;">Loading updates...</p>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <div class="main-content">

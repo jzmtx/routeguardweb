@@ -84,3 +84,10 @@ class EmergencyAlertAdmin(admin.ModelAdmin):
 class TravelHistoryAdmin(admin.ModelAdmin):
     list_display = ['user', 'start_time', 'distance_km', 'safety_score']
     date_hierarchy = 'start_time'
+
+
+from .models import SafetyNews
+@admin.register(SafetyNews)
+class SafetyNewsAdmin(admin.ModelAdmin):
+    list_display = ['title', 'priority', 'author', 'created_at']
+    list_filter = ['priority', 'created_at']

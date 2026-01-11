@@ -277,3 +277,33 @@ class EmergencyAlert(models.Model):
     
     def __str__(self):
         return f"Alert {self.id} - {self.status}"
+
+
+class SafetyNews(models.Model):
+    """
+    News updates posted by police for users.
+    """
+    PRIORITY_CHOICES = [
+        ('low', 'General Info'),
+        ('medium', 'Advisory'),
+        ('high', 'Safety Alert'),
+        ('critical', 'Emergency'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.ForeignKey(PoliceAuthority, on_delete=models.CASCADE)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='low')
+    
+    region_tag = models.CharField(max_length=100, blank=True, help_text="e.g., 'Downtown', 'Indiranagar'")
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = "Safety News"
+    
+    def __str__(self):
+        return self.title
