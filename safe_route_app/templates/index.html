@@ -53,16 +53,16 @@
 
                 <div class="stat">
                     <span class="stat-value">{{ crime_count }}</span>
-                    <span class="stat-label">Crime Points</span>
+                    <span class="stat-label">Points</span>
                 </div>
                 <div class="stat">
                     <span class="stat-value">{{ safety_zone_count }}</span>
-                    <span class="stat-label">Safety Zones</span>
+                    <span class="stat-label">Zones</span>
                 </div>
                 <div class="auth-controls">
-                    <span id="user-email" style="color: #94a3b8; margin-right: 12px;"></span>
+                    <span id="user-email" style="color: #94a3b8; margin-right: 12px; display: none;"></span>
                     <button id="logout-btn" class="btn-secondary"
-                        style="display: none; padding: 8px 16px;">Logout</button>
+                        style="display: none; padding: 4px 10px; font-size: 0.75rem;">Logout</button>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
 
     <!-- News Panel Overlay -->
     <div id="news-panel"
-        style="position: fixed; top: 70px; right: -400px; width: 350px; background: #1e293b; bottom: 20px; z-index: 3000; border-radius: 12px 0 0 12px; box-shadow: -4px 0 20px rgba(0,0,0,0.5); transition: right 0.3s ease; padding: 20px; overflow-y: auto; border-left: 1px solid #334155;">
+        style="position: fixed; top: 70px; right: -100%; width: 100%; max-width: 350px; background: #1e293b; bottom: 0; z-index: 3000; border-radius: 12px 0 0 0; box-shadow: -4px 0 20px rgba(0,0,0,0.5); transition: right 0.3s ease; padding: 20px; overflow-y: auto; border-left: 1px solid #334155;">
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
             <h3 style="color: white; margin: 0;">📢 Safety Updates</h3>
@@ -84,6 +84,9 @@
 
     <!-- Main Content -->
     <div class="main-content">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-content">
@@ -91,7 +94,7 @@
                 <div class="sidebar-section">
                     <h3>🔍 Search Location</h3>
                     <div class="input-group">
-                        <input type="text" id="location-search" placeholder="Search any city, address, or landmark..."
+                        <input type="text" id="location-search" placeholder="Search city or landmark..."
                             class="search-input">
                         <button id="search-button" class="btn-primary" style="margin-top: 8px;">
                             Search
@@ -102,12 +105,11 @@
                 <!-- Route Planning -->
                 <div class="sidebar-section">
                     <h3>🗺️ Plan Your Route</h3>
-                    <p style="color: #94a3b8; font-size: 0.8125rem; margin-bottom: 12px;">Click on the map to set start
-                        and end points</p>
+                    <p style="color: #94a3b8; font-size: 0.8125rem; margin-bottom: 12px;">Click map for points</p>
 
                     <div class="input-group">
-                        <label>📍 Start Location</label>
-                        <input type="text" id="start-location" placeholder="Click map or use current location" readonly>
+                        <label>📍 Start</label>
+                        <input type="text" id="start-location" placeholder="Origin" readonly>
                         <button id="use-current-location" class="btn-secondary" style="margin-top: 6px;">
                             Use My Location
                         </button>
@@ -116,8 +118,7 @@
                     <div class="input-group">
                         <label>🎯 Destination</label>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="end-location" placeholder="Click on map to set destination" readonly
-                                style="flex: 1;">
+                            <input type="text" id="end-location" placeholder="Destination" readonly style="flex: 1;">
                             <button id="search-dest-btn" class="btn-secondary" style="padding: 8px;"
                                 title="Search Destination">
                                 🔍
@@ -149,15 +150,11 @@
 
                 <!-- Data Management -->
                 <div class="sidebar-section">
-                    <h3>⚙️ Data Management</h3>
+                    <h3>⚙️ Options</h3>
                     <button id="generate-sample-data" class="btn-secondary">
                         Generate Sample Data
                     </button>
-                    <label for="csv-upload" class="btn-secondary"
-                        style="margin-top: 8px; cursor: pointer; text-align: center;">
-                        Upload Crime CSV
-                    </label>
-                    <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                    <!-- Small Logout for Mobile here too maybe? No, header is enough -->
                 </div>
             </div>
         </aside>
@@ -174,11 +171,21 @@
         </main>
     </div>
 
-    <!-- SOS Emergency Button -->
-    <button class="sos-button" id="sos-trigger" title="Emergency SOS">
-        <span class="sos-icon">🆘</span>
-        <span class="sos-text">SOS</span>
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
     </button>
+
+    <!-- SOS Emergency Button -->
+    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;"
+        class="sos-wrapper">
+        <button class="sos-button" id="sos-trigger" title="Emergency SOS">
+            <span class="sos-icon">🆘</span>
+            <span class="sos-text">SOS</span>
+        </button>
+    </div>
 
     <!-- SOS Countdown Modal -->
     <div class="sos-countdown-modal" id="sos-countdown">
@@ -214,6 +221,14 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Scripts -->
+    <!-- Firebase SDK (Added specifically for Auth/News) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-storage-compat.js"></script>
+
+    <script src="/static/js/firebase-config.js"></script>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -224,6 +239,27 @@
     <script src="/static/js/main.js"></script>
     <script src="/static/js/sos_handler.js"></script>
     <script src="/static/js/live_tracker.js"></script>
+
+    <script>
+        // Start live tracking immediately
+        if (window.initializePoliceTracking) window.initializePoliceTracking();
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.querySelector('.sidebar-backdrop');
+
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if (backdrop) backdrop.classList.remove('active');
+            } else {
+                sidebar.classList.add('open');
+                if (backdrop) backdrop.classList.add('active');
+            }
+        }
+
+        // Ensure SOS button is accessible on mobile
+        // Adjusted positioning in CSS override logic below if needed
+    </script>
 </body>
 
 </html>
