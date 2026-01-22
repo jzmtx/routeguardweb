@@ -2774,3 +2774,150 @@ body {
         min-height: 44px;
     }
 }
+/* ========== Improved Launch Button & Text Colors ========== */
+@media (max-width: 768px) {
+    /* Better launch button */
+    .sheet-primary-btn {
+        background: linear-gradient(135deg, #FF6B35 0%, #1E3A8A 100%) !important;
+        border: 1px solid rgba(255, 107, 53, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+        font-weight: 600 !important;
+        font-size: var(--font-lg) !important;
+        color: white !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.2s ease !important;
+        animation: none !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+    }
+
+    .sheet-primary-btn:active {
+        transform: scale(0.98) !important;
+        box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4) !important;
+    }
+
+    .sheet-primary-btn:disabled {
+        background: linear-gradient(135deg, rgba(255, 107, 53, 0.4) 0%, rgba(30, 58, 138, 0.4) 100%) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* Improved text colors */
+    .sheet-title {
+        color: #F8FAFC !important;
+    }
+
+    .mobile-route-title {
+        color: #F8FAFC !important;
+    }
+
+    .mobile-option-text {
+        color: #E2E8F0 !important;
+    }
+
+    .user-email {
+        color: #F8FAFC !important;
+    }
+
+    .user-status {
+        color: #CBD5E1 !important;
+    }
+
+    .suggestion-main {
+        color: #F8FAFC !important;
+    }
+
+    .suggestion-sub {
+        color: #94A3B8 !important;
+    }
+
+    .mobile-detail-value {
+        color: #E2E8F0 !important;
+    }
+
+    .selection-text {
+        color: white !important;
+    }
+
+    .mobile-nav-item {
+        color: #CBD5E1 !important;
+    }
+
+    .mobile-nav-item.active {
+        color: #FF6B35 !important;
+    }
+
+    .stat-chip {
+        color: white !important;
+        background: linear-gradient(135deg, rgba(255, 107, 53, 0.9) 0%, rgba(30, 58, 138, 0.9) 100%) !important;
+    }
+}
+/* ========== Mobile Map Selection Fixes ========== */
+@media (max-width: 768px) {
+    .selection-mode-info {
+        position: fixed !important;
+        top: 20px !important;
+        left: 20px !important;
+        right: 20px !important;
+        z-index: 2500 !important;
+        background: linear-gradient(135deg, #FF6B35 0%, #1E3A8A 100%) !important;
+        color: white !important;
+        padding: 16px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+        display: none !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .cancel-selection {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.9rem !important;
+        cursor: pointer !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
+    .selection-text {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Ensure mobile nav items are clickable */
+    .mobile-nav-item {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: rgba(255, 107, 53, 0.2) !important;
+        user-select: none !important;
+        touch-action: manipulation !important;
+    }
+
+    .mobile-nav-item:active {
+        background: rgba(255, 107, 53, 0.2) !important;
+        transform: scale(0.95) !important;
+    }
+
+    /* Fix panel visibility */
+    .mobile-route-panel.show,
+    .mobile-options-panel.show,
+    #mobile-profile-panel.show {
+        display: block !important;
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        z-index: 2000 !important;
+    }
+
+    /* Map selection cursor */
+    .leaflet-container {
+        cursor: default !important;
+    }
+
+    body.map-selection-active .leaflet-container {
+        cursor: crosshair !important;
+    }
+}

@@ -10,6 +10,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#FF6B35">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RouteGuard">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16x16.png">
+    
     <title>RouteGuard - Your Safety Navigator</title>
 
     <!-- Leaflet CSS  -->
@@ -418,6 +428,63 @@
     <script src="/static/js/sos_handler.js"></script>
     <script src="/static/js/live_tracker.js"></script>
 
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('RouteGuard SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('RouteGuard SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            const installBtn = document.createElement('button');
+            installBtn.innerHTML = '📱 Install App';
+            installBtn.className = 'install-btn';
+            installBtn.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #FF6B35 0%, #1E3A8A 100%);
+                color: white;
+                border: none;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                z-index: 3000;
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+            `;
+            
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('RouteGuard app installed');
+                    }
+                    deferredPrompt = null;
+                    installBtn.remove();
+                }
+            });
+            
+            document.body.appendChild(installBtn);
+        }
+    </script>
+
     <script>
         // Mobile Interactions Glue Code
         function handleMobileSearch(e) {
@@ -741,10 +808,10 @@
                 
                 if (hasStart && hasEnd) {
                     calcBtn.style.opacity = '1';
-                    calcBtn.innerHTML = '🔍 Find Safest Route';
+                    calcBtn.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Find Safest Route';
                 } else {
                     calcBtn.style.opacity = '0.6';
-                    calcBtn.innerHTML = hasStart ? '🎯 Set destination on map' : '📍 Set start location first';
+                    calcBtn.innerHTML = hasStart ? '🎯 Set destination' : '📍 Set start location';
                 }
             }
         }
@@ -774,14 +841,20 @@
             const btn = document.getElementById('map-select-btn');
             const info = document.getElementById('selection-mode-info');
             const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
 
             if (mapSelectionMode) {
-                btn.style.display = 'none';
-                info.style.display = 'flex';
+                // Hide bottom sheet and navigation completely
+                bottomSheet.style.display = 'none';
+                mobileNav.style.display = 'none';
                 
-                // Minimize bottom sheet
-                bottomSheet.style.transform = 'translateY(80%)';
-                bottomSheet.style.transition = 'transform 0.3s ease';
+                // Show selection info overlay
+                info.style.display = 'flex';
+                info.style.position = 'fixed';
+                info.style.top = '20px';
+                info.style.left = '20px';
+                info.style.right = '20px';
+                info.style.zIndex = '2000';
                 
                 // Determine what to select next
                 const startInput = document.getElementById('mobile-start-location');
@@ -796,7 +869,7 @@
                 }
                 
                 document.getElementById('selection-type').textContent = selectionType;
-                showToast(`Tap anywhere on map to set ${selectionType} point`, 'info');
+                showToast(`Tap map to set ${selectionType} point`, 'info');
             } else {
                 cancelMapSelection();
             }
@@ -804,15 +877,16 @@
 
         function cancelMapSelection() {
             mapSelectionMode = false;
-            const btn = document.getElementById('map-select-btn');
             const info = document.getElementById('selection-mode-info');
             const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
             
-            btn.style.display = 'block';
+            // Hide selection info
             info.style.display = 'none';
             
-            // Restore bottom sheet
-            bottomSheet.style.transform = 'translateY(0)';
+            // Restore bottom sheet and navigation
+            bottomSheet.style.display = 'block';
+            mobileNav.style.display = 'block';
             
             document.body.classList.remove('map-selection-active');
         }
@@ -845,13 +919,20 @@
                         }
                     }
                     
-                    // Exit selection mode
+                    // Exit selection mode and restore UI
                     cancelMapSelection();
                 })
                 .catch(() => {
                     const address = `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
                     selectLocation(lat, lon, address, selectionType);
-                    cancelMapSelection();
+                    
+                    // Check if both points are set
+                    const startInput = document.getElementById('mobile-start-location');
+                    const endInput = document.getElementById('mobile-end-location');
+                    
+                    if (startInput.value.trim() && endInput.value.trim()) {
+                        cancelMapSelection();
+                    }
                 });
         }
 
@@ -1066,7 +1147,21 @@
             }, 1000);
             
             // Fix mobile navigation clicks
-            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+            document.querySelectorAll('.mobile-nav-item').forEach((item, index) => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Get panel type from onclick attribute
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/showMobilePanel\('([^']+)'\)/);
+                        if (match) {
+                            showMobilePanel(match[1]);
+                        }
+                    }
+                });
+                
                 item.addEventListener('touchstart', function(e) {
                     e.preventDefault();
                     this.click();
