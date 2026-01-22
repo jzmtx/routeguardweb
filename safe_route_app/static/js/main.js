@@ -112,6 +112,15 @@ function attachEventListeners() {
     });
 
     document.getElementById('search-dest-btn').addEventListener('click', searchDestination);
+    document.getElementById('search-start-btn').addEventListener('click', searchStartLocation);
+    
+    // Allow Enter key to trigger search
+    document.getElementById('start-location').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchStartLocation();
+    });
+    document.getElementById('end-location').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchDestination();
+    });
 }
 
 // ========== Authentication ==========
@@ -148,7 +157,7 @@ function handleMapClick(e) {
     }
 }
 
-function setStartPoint(lat, lng) {
+function setStartPoint(lat, lng, address = null) {
     state.startCoords = [lat, lng];
     
     if (state.startMarker) {
@@ -160,11 +169,19 @@ function setStartPoint(lat, lng) {
     }).addTo(state.map);
     
     state.startMarker.bindPopup('<b>Start Location</b>').openPopup();
-    document.getElementById('start-location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    
+    // Reverse Geocode if address not provided
+    if (address) {
+        document.getElementById('start-location').value = address;
+    } else {
+        reverseGeocode(lat, lng, (addr) => {
+            document.getElementById('start-location').value = addr;
+        });
+    }
     updateCalculateButton();
 }
 
-function setEndPoint(lat, lng) {
+function setEndPoint(lat, lng, address = null) {
     state.endCoords = [lat, lng];
     
     if (state.endMarker) {
@@ -176,8 +193,32 @@ function setEndPoint(lat, lng) {
     }).addTo(state.map);
     
     state.endMarker.bindPopup('<b>Destination</b>').openPopup();
-    document.getElementById('end-location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    
+    if (address) {
+        document.getElementById('end-location').value = address;
+    } else {
+        reverseGeocode(lat, lng, (addr) => {
+            document.getElementById('end-location').value = addr;
+        });
+    }
     updateCalculateButton();
+}
+
+async function reverseGeocode(lat, lng, callback) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await response.json();
+        if (data && data.display_name) {
+            // Shorten address for display
+            const shortName = data.display_name.split(',').slice(0, 3).join(',');
+            callback(shortName);
+        } else {
+            callback(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+    } catch (e) {
+        console.error('Reverse geocode failed', e);
+        callback(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    }
 }
 
 function createCustomIcon(emoji, color) {
@@ -567,10 +608,17 @@ async function searchLocation() {
 }
 
 async function searchDestination() {
-    const query = prompt('Enter destination to search:');
-    if (!query) return;
+    const query = document.getElementById('end-location').value.trim();
+    if (!query) {
+        showToast('Please enter a destination', 'warning');
+        return;
+    }
 
     showLoading(true);
+    const btn = document.getElementById('search-dest-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '⌛';
+    btn.disabled = true;
     
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
@@ -586,14 +634,56 @@ async function searchDestination() {
         const lon = parseFloat(location.lon);
         
         state.map.setView([lat, lon], 13);
-        setEndPoint(lat, lon);
-        showToast(`Destination set: ${location.display_name}`, 'success');
+        setEndPoint(lat, lon, location.display_name.split(',').slice(0, 3).join(','));
+        showToast('Destination set: ' + location.display_name.split(',')[0], 'success');
         
     } catch (error) {
         console.error('Search error:', error);
         showToast('Error searching destination', 'error');
     } finally {
         showLoading(false);
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function searchStartLocation() {
+    const query = document.getElementById('start-location').value.trim();
+    if (!query) {
+        showToast('Please enter a start location', 'warning');
+        return;
+    }
+
+    showLoading(true);
+    const btn = document.getElementById('search-start-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '⌛';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const results = await response.json();
+        
+        if (results.length === 0) {
+            showToast('Start location not found', 'warning');
+            return;
+        }
+        
+        const location = results[0];
+        const lat = parseFloat(location.lat);
+        const lon = parseFloat(location.lon);
+        
+        state.map.setView([lat, lon], 13);
+        setStartPoint(lat, lon, location.display_name.split(',').slice(0, 3).join(','));
+        showToast('Start location set: ' + location.display_name.split(',')[0], 'success');
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        showToast('Error searching start location', 'error');
+    } finally {
+        showLoading(false);
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
 }
 
