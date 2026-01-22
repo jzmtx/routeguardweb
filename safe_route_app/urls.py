@@ -12,7 +12,8 @@ app_name = 'safe_route_app'
 
 urlpatterns = [
     # Main map interface
-    path('', views.index, name='index'),
+    path('', views.home, name='home'),
+    path('app/', views.index, name='map'),
     
     # API endpoints
     path('api/calculate-route/', views.calculate_safe_route, name='calculate_route'),

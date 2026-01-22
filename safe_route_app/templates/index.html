@@ -71,8 +71,7 @@
                 <!-- ... other stats ... -->
                 <div class="auth-controls">
                     <span id="user-email" style="color: #94a3b8; margin-right: 12px; display: none;"></span>
-                    <button id="logout-btn" class="btn-secondary" onclick="logoutUser()"
-                        style="display: none;">Logout</button>
+                    <button id="logout-btn" class="btn-secondary" onclick="logoutUser()">Logout</button>
                 </div>
             </div>
         </div>
@@ -115,13 +114,17 @@
                     <h3>🗺️ Plan Your Route</h3>
                     <div class="input-group">
                         <label>📍 Start</label>
-                        <input type="text" id="start-location" placeholder="Origin" readonly>
-                        <button id="use-current-location" class="btn-secondary">Use My Location</button>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="start-location" placeholder="Origin" style="flex: 1;">
+                            <button id="search-start-btn" class="btn-secondary" style="padding: 8px;">🔍</button>
+                        </div>
+                        <button id="use-current-location" class="btn-secondary"
+                            style="margin-top: 8px; width: 100%;">Use My Location</button>
                     </div>
                     <div class="input-group">
                         <label>🎯 Destination</label>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="end-location" placeholder="Destination" readonly style="flex: 1;">
+                            <input type="text" id="end-location" placeholder="Destination" style="flex: 1;">
                             <button id="search-dest-btn" class="btn-secondary" style="padding: 8px;">🔍</button>
                         </div>
                     </div>
