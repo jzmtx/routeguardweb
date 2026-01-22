@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteGuard - Safe Navigation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Landing Page Specific Styles */
+        html,
+        body {
+            overflow-y: auto !important;
+            /* Allow scrolling on landing page */
+            height: auto !important;
+            overflow-x: hidden;
+        }
+
+        .landing-header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hero-section {
+            padding: 120px 20px 80px;
+            text-align: center;
+            background: radial-gradient(circle at top center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: var(--spacing-md);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto var(--spacing-xl);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            transition: transform var(--transition-base);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .feature-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .verification-guide {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--success);
+            margin-top: var(--spacing-xl);
+        }
+
+        .guide-step {
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-lg);
+            border-left: 2px solid var(--border-color);
+        }
+
+        .code-block {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-family: monospace;
+            color: var(--success);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header landing-header">
+        <div class="header-content">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L3 7V12C3 17.52 7.5 22 12 22C16.5 22 21 17.52 21 12V7L12 2Z" stroke="url(#gradient)"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="gradient" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#667eea" />
+                            <stop offset="1" stop-color="#764ba2" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>RouteGuard</h1>
+            </div>
+            <div class="header-stats">
+                <a href="{% url 'safe_route_app:login_page' %}" class="btn-secondary">Login</a>
+                <a href="{% url 'safe_route_app:register_page' %}" class="btn-primary">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Navigate Safely.<br>Arrive Confidently.</h1>
+            <p class="hero-subtitle">
+                AI-powered navigation that prioritizes your safety. Real-time crime data, safe route scoring, and
+                instant SOS alerts.
+            </p>
+            <div class="auth-buttons">
+                <a href="{% url 'safe_route_app:login_page' %}" class="btn-primary"
+                    style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    Launch Safe Route App
+                </a>
+                <a href="#how-it-works" class="btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    See How It Works
+                </a>
+            </div>
+        </section>
+
+        <!-- Problem & Solution -->
+        <section id="about" class="section">
+            <div class="grid-3">
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3 class="feature-title">The Problem</h3>
+                    <p class="feature-text">
+                        Traditional navigation apps prioritize speed, often leading users through unsafe or poorly lit
+                        areas. Pedestrians, especially at night, are vulnerable to crime without real-time safety
+                        context.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">Our Solution</h3>
+                    <p class="feature-text">
+                        RouteGuard introduces a "Safety Score" algorithm that analyzes historical crime data, police
+                        presence, and lighting to calculate the safest possible path, not just the fastest one.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI Powered</h3>
+                    <p class="feature-text">
+                        Our Gemini AI engine explains WHY a route is safe, providing transparency and confidence. "Route
+                        A is safer due to higher police activity and fewer historical incidents in the last month."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Showcase -->
+        <section id="features" class="section" style="background: var(--bg-secondary);">
+            <h2 class="section-title">Key Features for Judges</h2>
+            <div class="grid-3">
+                <div class="feature-card">
+                    <h3 class="feature-title">📍 Safe Routing</h3>
+                    <p class="feature-text">Enter Start/End points to see multiple route options graded by safety (A, B,
+                        C). Includes distance and walk time.</p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="feature-title">🚨 SOS System</h3>
+                    <p class="feature-text">One-tap emergency alert that notifies nearby police and emergency contacts.
+                        Includes location tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="feature-title">🚓 Police Dashboard</h3>
+                    <p class="feature-text">Dedicated interface for authorities to view active SOS alerts, crime
+                        heatmaps, and manage safety zones.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complete Testing Walkthrough -->
+        <section id="verification" class="section">
+            <h2 class="section-title">Complete Testing Walkthrough</h2>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                Follow this <strong>exact sequence</strong> to verify the entire system lifecycle, from police resource
+                allocation to emergency response.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 30px; max-width: 800px; margin: 0 auto;">
+
+                <!-- Step 1: Police Setup -->
+                <div class="verification-guide" style="margin-top: 0; border-left-color: var(--primary);">
+                    <h3 class="feature-title">Phase 1: Police Setup & Resource Allocation</h3>
+                    <div class="guide-step">
+                        <h4>Step A: Register User Account</h4>
+                        <p>1. Go to the active web app and click <strong>Get Started</strong>.</p>
+                        <p>2. Register a new account with a police email (e.g.,
+                            <em>police.indiranagar@karnataka.gov.in</em>).</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Step B: Admin Verification (Backend)</h4>
+                        <p>1. Log in to the <strong>Admin Panel</strong> at <a href="/admin/" target="_blank"
+                                style="color: var(--primary);">/admin/</a>.</p>
+                        <p>2. Use superuser credentials: <span class="code-block">admin</span> / <span
+                                class="code-block">1234</span> (or as configured).</p>
+                        <p>3. Navigate to <strong>"Police Authorities"</strong> and click <strong>"Add Police
+                                Authority"</strong>.</p>
+                        <p>4. Select the user created in Step A, assign a <strong>Badge Number</strong>,
+                            <strong>Rank</strong>, and <strong>Station</strong>.</p>
+                        <p>5. Save to grant this user police dashboard access.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Step C: Assign Duty & Patrols</h4>
+                        <p>1. Log out of Admin and log in to the main app with the police account from Step A.</p>
+                        <p>2. Navigate to <span class="code-block">/police/dashboard/</span>.</p>
+                        <p>3. Identify high-risk zones on the map and click <strong>"Assign Patrol Unit"</strong>. This
+                            activates safety measures for that beat.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: User Action -->
+                <div class="verification-guide" style="margin-top: 0;">
+                    <h3 class="feature-title">Phase 2: User Journey & SOS Trigger</h3>
+                    <div class="guide-step">
+                        <h4>Step A: User Registration</h4>
+                        <p>1. Register a new public user account (e.g., <em>citizen@test.com</em>).</p>
+                        <p>2. Login to access the main map interface.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Step B: Route Selection</h4>
+                        <p>1. Enter specific Indian locations (e.g., "M G Road" to "Indiranagar").</p>
+                        <p>2. Review the <strong>Safety Score</strong>. You will see higher scores in areas where you
+                            assigned police patrols in Phase 1.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Step C: Trigger Emergency</h4>
+                        <p>1. Simulate a threat by clicking the red <strong>SOS Button</strong>.</p>
+                        <p>2. A countdown will start. Let it finish to send the alert.</p>
+                        <p>3. You will see a "Police Notified" confirmation screen.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Verification -->
+                <div class="verification-guide" style="margin-top: 0; border-left-color: var(--danger);">
+                    <h3 class="feature-title">Phase 3: Real-Time Response Verification</h3>
+                    <div class="guide-step">
+                        <h4>Step A: Verify Alert Reception</h4>
+                        <p>1. Open a new browser window (Incognito) or logout and login back as <strong>Police</strong>.
+                        </p>
+                        <p>2. Check the Dashboard. The SOS alert from Phase 2 should appear <strong>instantly</strong>
+                            with the user's live location.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Step B: Response Coordination</h4>
+                        <p>1. Verify that the assigned Patrol Unit (from Phase 1) is visible near the incident.</p>
+                        <p>2. This confirms the complete loop: <strong>Simulation -> Prevention -> Action ->
+                                Response</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Transparency Section -->
+        <section id="data-transparency" class="section" style="background: var(--bg-secondary);">
+            <h2 class="section-title">Data & Technology</h2>
+            <div class="grid-3">
+                <div class="feature-card">
+                    <h3 class="feature-title">📊 Crime Data Generation</h3>
+                    <p class="feature-text">
+                        For this prototype, crime data is <strong>simulated</strong> using realistic urban density
+                        heuristics for Indian cities.
+                        We generate historical incidents around major landmarks to demonstrate the routing algorithm's
+                        safety scoring capabilities without compromising real user privacy.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="feature-title">🔄 Production Real-Time Data</h3>
+                    <p class="feature-text">
+                        In a production environment, RouteGuard is architected to ingest real-time crime feeds via:
+                        <br>• <strong>CCTNS Integration</strong> (Crime and Criminal Tracking Network & Systems)
+                        <br>• <strong>City Police Open Data</strong> (e.g., Bengaluru/Mumbai Police Portals)
+                        <br>• <strong>Crowdsourced Reports</strong> (Verified community submissions)
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="feature-title">🧠 Gemini AI Integration</h3>
+                    <p class="feature-text">
+                        We use Google's Gemini Pro to analyze data patterns. It understands context—differentiating
+                        between "petty theft" (low risk) and "violent assault" (high risk) to dynamically weight safety
+                        scores.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 2rem; border-top: 1px solid var(--border-color); color: var(--text-muted);">
+        <p>&copy; 2026 RouteGuard. Built for Safer Communities.</p>
+    </footer>
+
+    <script>
+        // Simple animation for cards on scroll
+        const observeElements = document.querySelectorAll('.feature-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
