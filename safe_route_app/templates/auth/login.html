@@ -89,6 +89,10 @@
                 <div class="input-group">
                     <label>Password</label>
                     <input type="password" id="password" required>
+                    <div style="text-align: right; margin-top: 5px;">
+                        <a href="#" id="forgot-password"
+                            style="font-size: 0.8rem; color: #3b82f6; text-decoration: none;">Forgot Password?</a>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-primary" style="width: 100%">Login</button>
@@ -97,6 +101,24 @@
             <div class="auth-links">
                 <p>Don't have an account? <a href="/auth/register/">Register</a></p>
                 <!-- <p><a href="/auth/police-login/">Police Login →</a></p> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div
+            style="background: var(--bg-primary); padding: 24px; border-radius: 12px; width: 400px; border: 1px solid var(--border-color);">
+            <h3 style="margin-bottom: 16px; color: var(--text-primary);">Reset Password</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">Enter your email address to
+                receive a password reset link.</p>
+            <input type="email" id="reset-email" placeholder="Enter your email"
+                style="width: 100%; padding: 10px; margin-bottom: 16px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;">
+            <div style="display: flex; gap: 10px;">
+                <button id="send-reset" class="btn-primary" style="flex: 1;">Send Link</button>
+                <button onclick="document.getElementById('reset-modal').style.display='none'"
+                    style="flex: 1; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Cancel</button>
             </div>
         </div>
     </div>
@@ -116,6 +138,42 @@
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
+
+        // Password Reset Logic
+        document.getElementById('forgot-password').addEventListener('click', (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('email').value;
+            if (emailInput) {
+                document.getElementById('reset-email').value = emailInput;
+            }
+            document.getElementById('reset-modal').style.display = 'flex';
+        });
+
+        document.getElementById('send-reset').addEventListener('click', async () => {
+            const email = document.getElementById('reset-email').value;
+            const btn = document.getElementById('send-reset');
+
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+
+                await auth.sendPasswordResetEmail(email);
+
+                alert('Password reset link sent! Check your email.');
+                document.getElementById('reset-modal').style.display = 'none';
+            } catch (error) {
+                console.error('Reset error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Link';
+            }
+        });
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
