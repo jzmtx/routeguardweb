@@ -61,6 +61,10 @@ def firebase_login(request):
         request.session['user_email'] = email
         request.session['is_police'] = PoliceAuthority.objects.filter(firebase_uid=firebase_uid).exists()
         
+        # Force save session
+        request.session.save()
+        print(f"DEBUG: Session created for {email}, UID: {firebase_uid}, SessionKey: {request.session.session_key}")
+        
         return JsonResponse({
             'success': True,
             'user': {
@@ -72,6 +76,8 @@ def firebase_login(request):
         
     except Exception as e:
         print(f"Login error: {e}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
