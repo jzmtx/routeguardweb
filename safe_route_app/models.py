@@ -264,6 +264,7 @@ class EmergencyAlert(models.Model):
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     alert_time = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     # Police response
     assigned_officer = models.ForeignKey(PoliceAuthority, on_delete=models.SET_NULL, null=True, blank=True)

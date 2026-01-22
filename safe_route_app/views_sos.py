@@ -276,10 +276,28 @@ def resolve_sos(request):
         alert_id = data.get('alert_id')
         resolved_by = data.get('resolved_by', 'user')
         
-        alert = EmergencyAlert.objects.get(
-            id=alert_id,
-            user__firebase_uid=firebase_uid
-        )
+        # Get alert first
+        try:
+            alert = EmergencyAlert.objects.get(id=alert_id)
+        except EmergencyAlert.DoesNotExist:
+            return JsonResponse({'error': 'Alert not found'}, status=404)
+
+        # Check permissions
+        is_authorized = False
+        
+        # 1. Check if user is owner
+        if alert.user.firebase_uid == firebase_uid:
+            is_authorized = True
+            
+        # 2. Check if user is police
+        if not is_authorized:
+            if PoliceAuthority.objects.filter(firebase_uid=firebase_uid).exists():
+                is_authorized = True
+                if resolved_by == 'user':
+                    resolved_by = 'police'
+        
+        if not is_authorized:
+            return JsonResponse({'error': 'Unauthorized to resolve this alert'}, status=403)
         
         alert.status = 'resolved'
         alert.resolved_time = timezone.now()

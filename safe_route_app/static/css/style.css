@@ -169,10 +169,13 @@ body {
     background: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
-    padding: var(--spacing-lg);
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+    padding: var(--spacing-md);
+    /* Reduce padding slightly */
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -317,11 +320,16 @@ body {
 
 .route-card {
     background: var(--bg-primary);
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     border-radius: var(--radius-md);
     border: 2px solid transparent;
     transition: all var(--transition-base);
     cursor: pointer;
+    margin-bottom: var(--spacing-sm);
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: break-word;
+    /* Ensure text creates new lines */
 }
 
 .route-card:hover {
@@ -370,9 +378,9 @@ body {
 }
 
 .route-score {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin: var(--spacing-sm) 0;
+    margin: var(--spacing-xs) 0;
 }
 
 .score-a {
@@ -394,8 +402,10 @@ body {
 
 .route-details {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Force columns to shrink if needed */
+    gap: var(--spacing-xs);
+    /* Reduce gap */
     margin-top: var(--spacing-md);
     padding-top: var(--spacing-md);
     border-top: 1px solid var(--border-color);
@@ -607,6 +617,11 @@ body {
 
 .leaflet-bar a:hover {
     background: var(--bg-tertiary) !important;
+}
+
+/* Hide default routing machine container as we use custom sidebar */
+.leaflet-routing-container {
+    display: none !important;
 }
 
 /* ========== Mobile Toggle Button ========== */

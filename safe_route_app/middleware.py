@@ -29,6 +29,9 @@ class LoginRequiredMiddleware:
         
         # Check if current path is exempt
         path = request.path
+        if path == '/':
+            return self.get_response(request)
+            
         is_exempt = any(path.startswith(url) for url in self.exempt_urls)
         
         # If not authenticated and not on exempt page, redirect to login
