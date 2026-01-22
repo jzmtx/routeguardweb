@@ -1,0 +1,26 @@
+        // Initialize mobile features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial mobile panel styles
+            const panels = ['mobile-route-panel', 'mobile-options-panel'];
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = 'none';
+                    panel.style.opacity = '0';
+                    panel.style.transition = 'opacity 0.3s ease';
+                }
+            });
+
+            // Update mobile button state on load
+            updateMobileCalculateButton();
+            
+            // Initialize map click handler when map is ready
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.on('click', handleMapClick);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

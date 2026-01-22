@@ -8,6 +8,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#FF6B35">
     <title>RouteGuard - Your Safety Navigator</title>
 
     <!-- Leaflet CSS  -->
@@ -16,7 +18,9 @@
     <!-- Leaflet Routing Machine CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Optimized for Mobile -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
@@ -48,12 +52,13 @@
         <div class="header-content">
             <div class="logo">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <path d="M16 2L4 10v12c0 7.18 5.82 13 13 13s13-5.82 13-13V10L16 2z" fill="url(#gradient)"
-                        stroke="#fff" stroke-width="2" />
+                    <path d="M16 2L4 10v12c0 7.18 5.82 13 13 13s13-5.82 13-13V10L16 2z" fill="url(#hinduGradient)"
+                        stroke="#FF9933" stroke-width="2" />
                     <defs>
-                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        <linearGradient id="hinduGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FF9933;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#FF6B35;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1E3A8A;stop-opacity:1" />
                         </linearGradient>
                     </defs>
                 </svg>
@@ -164,14 +169,15 @@
     <!-- Mobile Bottom Sheet -->
     <div class="mobile-bottom-sheet mobile-only">
         <div class="sheet-handle"></div>
-        <h2 class="sheet-title">Plan Your Journey</h2>
+        <h2 class="sheet-title">🛡️ Plan Your Safe Journey</h2>
 
         <div class="sheet-input-group">
             <div class="sheet-input-row">
                 <div class="sheet-icon">📍</div>
-                <input type="text" id="mobile-start-location" placeholder="Start Location" readonly
-                    onclick="showToast('Tap map for start point', 'info')">
-                <button class="icon-btn" onclick="useCurrentLocationMobile()">
+                <input type="text" id="mobile-start-location" placeholder="Search start location..." 
+                    oninput="handleMobileLocationSearch(this, 'start')" 
+                    onfocus="showLocationSuggestions(this, 'start')">
+                <button class="icon-btn" onclick="useCurrentLocationMobile()" title="Use Current Location">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
@@ -181,21 +187,44 @@
             </div>
             <div class="sheet-input-row">
                 <div class="sheet-icon">🎯</div>
-                <input type="text" id="mobile-end-location" placeholder="Destination" readonly
-                    onclick="showToast('Tap map for destination', 'info')">
+                <input type="text" id="mobile-end-location" placeholder="Search destination..." 
+                    oninput="handleMobileLocationSearch(this, 'end')" 
+                    onfocus="showLocationSuggestions(this, 'end')">
+                <button class="icon-btn" onclick="clearDestinationMobile()" title="Clear Destination">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mobile-suggestions" id="mobile-suggestions" style="display: none;"></div>
+        </div>
+
+        <button class="sheet-primary-btn" onclick="triggerRouteCalculation()" id="mobile-calculate-btn" disabled>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 8px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Find Safest Route
+        </button>
+
+        <!-- Map Selection Mode Toggle -->
+        <div class="map-selection-toggle">
+            <button class="map-select-btn" id="map-select-btn" onclick="toggleMapSelectionMode()">
+                📍 Tap Map to Select
+            </button>
+            <div class="selection-mode-info" id="selection-mode-info" style="display: none;">
+                <span class="selection-text">📍 Tap map to set <span id="selection-type">start</span> point</span>
+                <button class="cancel-selection" onclick="cancelMapSelection()">Cancel</button>
             </div>
         </div>
 
-        <button class="sheet-primary-btn" onclick="triggerRouteCalculation()">Find Safest Route</button>
-
         <div class="sheet-actions">
-            <div class="text-muted" style="font-size: 0.8rem; color: #64748b;">
-                Generated Data & Uploads available on Desktop
+            <div class="text-muted" style="font-size: 0.8rem; color: var(--text-muted);">
+                🌟 All features available • Swipe up for options
             </div>
-            <button class="icon-btn" onclick="openMobileOptions()">
+            <button class="icon-btn" onclick="showMobilePanel('options')" title="More Options">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                 </svg>
             </button>
         </div>
@@ -252,7 +281,109 @@
         <span style="font-size: 0.9em; opacity: 0.9;">• Tap to Expand</span>
     </div>
 
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav mobile-only">
+        <div class="mobile-nav-items">
+            <div class="mobile-nav-item active" onclick="showMobilePanel('route')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span>Route</span>
+            </div>
+            <div class="mobile-nav-item" onclick="showMobilePanel('options')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                </svg>
+                <span>Options</span>
+            </div>
+            <div class="mobile-nav-item" onclick="showMobilePanel('results')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Results</span>
+            </div>
+            <div class="mobile-nav-item" onclick="showMobilePanel('safety')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Safety</span>
+            </div>
+            <div class="mobile-nav-item" onclick="showMobilePanel('profile')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Profile</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Route Results Panel -->
+    <div class="mobile-route-panel mobile-only" id="mobile-route-panel">
+        <div class="mobile-route-header">
+            <h3 class="mobile-route-title">🛣️ Route Options</h3>
+            <button class="mobile-close-btn" onclick="closeMobilePanel('route')">&times;</button>
+        </div>
+        <div id="mobile-routes-container"></div>
+    </div>
+
+    <!-- Mobile Options Panel -->
+    <div class="mobile-options-panel mobile-only" id="mobile-options-panel">
+        <div class="mobile-route-header">
+            <h3 class="mobile-route-title">⚙️ Options</h3>
+            <button class="mobile-close-btn" onclick="closeMobilePanel('options')">&times;</button>
+        </div>
+        <div class="mobile-option-item" onclick="generateSampleDataMobile()">
+            <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span class="mobile-option-text">Generate Sample Data</span>
+        </div>
+        <div class="mobile-option-item" onclick="triggerCSVUploadMobile()">
+            <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span class="mobile-option-text">Upload Crime CSV</span>
+        </div>
+        <div class="mobile-option-item" onclick="clearAllDataMobile()">
+            <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span class="mobile-option-text">Clear All Routes</span>
+        </div>
+    </div>
+
+    <!-- Mobile Profile Panel -->
+    <div class="mobile-options-panel mobile-only" id="mobile-profile-panel">
+        <div class="mobile-route-header">
+            <h3 class="mobile-route-title">👤 Profile</h3>
+            <button class="mobile-close-btn" onclick="closeMobilePanel('profile')">&times;</button>
+        </div>
+        <div class="mobile-profile-content">
+            <div class="mobile-user-info" id="mobile-user-info" style="display: none;">
+                <div class="user-avatar">
+                    <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div class="user-details">
+                    <div class="user-email" id="mobile-user-email">Not logged in</div>
+                    <div class="user-status">RouteGuard User</div>
+                </div>
+            </div>
+            <div class="mobile-option-item" onclick="logoutUser()">
+                <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span class="mobile-option-text">Logout</span>
+            </div>
+            <div class="mobile-option-item" onclick="showAppInfo()">
+                <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="mobile-option-text">About RouteGuard</span>
+            </div>
+        </div>
+    </div>
 
     <!-- News Panel Overlay -->
     <div id="news-panel"
@@ -326,9 +457,573 @@
         // Observer to watch for value changes on desktop inputs (which are set by map clicks)
         setInterval(syncInputs, 500); // Polling is simplest and robust for this temp glue code
 
-        function openMobileOptions() {
-            showToast("More options available on Desktop view", "info");
+        // Mobile Panel Management
+        let activeMobilePanel = null;
+
+        function showMobilePanel(panelType) {
+            // Close any open panel first
+            if (activeMobilePanel) {
+                closeMobilePanel(activeMobilePanel);
+            }
+
+            // Update navigation active state
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[onclick="showMobilePanel('${panelType}')"]`).classList.add('active');
+
+            // Show the requested panel
+            const panelId = `mobile-${panelType}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.style.display = 'block';
+                panel.classList.add('show');
+                setTimeout(() => panel.style.opacity = '1', 10);
+                activeMobilePanel = panelType;
+            }
+
+            // Special handling for results panel
+            if (panelType === 'results') {
+                syncRouteResults();
+            }
         }
+
+        function closeMobilePanel(panelType) {
+            const panelId = `mobile-${panelType}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.remove('show');
+                panel.style.opacity = '0';
+                setTimeout(() => panel.style.display = 'none', 300);
+            }
+            activeMobilePanel = null;
+
+            // Reset navigation to route tab
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[onclick="showMobilePanel('route')"]`).classList.add('active');
+        }
+
+        function syncRouteResults() {
+            const desktopContainer = document.getElementById('routes-container');
+            const mobileContainer = document.getElementById('mobile-routes-container');
+            if (desktopContainer && mobileContainer) {
+                mobileContainer.innerHTML = desktopContainer.innerHTML;
+            }
+        }
+
+        function generateSampleDataMobile() {
+            document.getElementById('generate-sample-data').click();
+            showToast('Generating sample crime data...', 'info');
+            closeMobilePanel('options');
+        }
+
+        function triggerCSVUploadMobile() {
+            document.getElementById('csv-upload').click();
+            closeMobilePanel('options');
+        }
+
+        function clearAllDataMobile() {
+            if (confirm('Clear all routes and data?')) {
+                document.getElementById('clear-route').click();
+                showToast('Routes cleared', 'success');
+            }
+            closeMobilePanel('options');
+        }
+
+        // Mobile Location Search Functions
+        let searchTimeout = null;
+        let currentSearchType = null;
+
+        function handleMobileLocationSearch(input, type) {
+            clearTimeout(searchTimeout);
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                hideMobileSuggestions();
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                searchLocations(query, type);
+            }, 300);
+        }
+
+        function showLocationSuggestions(input, type) {
+            currentSearchType = type;
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            
+            if (input.value.trim().length === 0) {
+                showQuickLocations(type);
+            }
+        }
+
+        function showQuickLocations(type) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            const quickLocations = [
+                { icon: '🏠', name: 'Home', desc: 'Your home location' },
+                { icon: '💼', name: 'Work', desc: 'Your workplace' },
+                { icon: '🏥', name: 'Hospital', desc: 'Nearest hospital' },
+                { icon: '🚔', name: 'Police Station', desc: 'Nearest police station' },
+                { icon: '🏪', name: 'Market', desc: 'Local market area' }
+            ];
+
+            let html = '<div class="quick-locations">';
+            quickLocations.forEach(loc => {
+                html += `<button class="quick-location-btn" onclick="selectQuickLocation('${loc.name}', '${type}')">
+                    ${loc.icon} ${loc.name}
+                </button>`;
+            });
+            html += '</div>';
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+
+        function searchLocations(query, type) {
+            // Use Nominatim API for location search
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    showSearchResults(data, type);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showToast('Search failed. Try again.', 'error');
+                });
+        }
+
+        function showSearchResults(results, type) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            
+            if (results.length === 0) {
+                suggestionsDiv.innerHTML = '<div class="suggestion-item"><span class="suggestion-text">No results found</span></div>';
+                suggestionsDiv.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            results.forEach(result => {
+                const mainText = result.display_name.split(',')[0];
+                const subText = result.display_name.split(',').slice(1, 3).join(',');
+                
+                html += `
+                    <div class="suggestion-item" onclick="selectLocation('${result.lat}', '${result.lon}', '${mainText.replace(/'/g, "\\'")}, ${subText.replace(/'/g, "\\'")}'.substring(0, 50), '${type}')">
+                        <span class="suggestion-icon">📍</span>
+                        <div class="suggestion-text">
+                            <div class="suggestion-main">${mainText}</div>
+                            <div class="suggestion-sub">${subText}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+
+        function selectLocation(lat, lon, name, type) {
+            const input = document.getElementById(`mobile-${type}-location`);
+            const desktopInput = document.getElementById(`${type}-location`);
+            
+            input.value = name;
+            if (desktopInput) desktopInput.value = name;
+
+            // Add marker to map
+            const latLng = [parseFloat(lat), parseFloat(lon)];
+            
+            if (type === 'start') {
+                if (window.startMarker) map.removeLayer(window.startMarker);
+                window.startMarker = L.marker(latLng, {
+                    icon: L.divIcon({
+                        className: 'custom-marker start-marker',
+                        html: '🚩',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map);
+                window.startPoint = latLng;
+            } else {
+                if (window.destinationMarker) map.removeLayer(window.destinationMarker);
+                window.destinationMarker = L.marker(latLng, {
+                    icon: L.divIcon({
+                        className: 'custom-marker end-marker',
+                        html: '🎯',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map);
+                window.endPoint = latLng;
+            }
+
+            map.setView(latLng, 15);
+            hideMobileSuggestions();
+            updateMobileCalculateButton();
+            showToast(`${type === 'start' ? 'Start' : 'Destination'} set: ${name}`, 'success');
+        }
+
+        function selectQuickLocation(name, type) {
+            const input = document.getElementById(`mobile-${type}-location`);
+            input.value = name;
+            input.focus();
+            
+            // Trigger search for the quick location
+            handleMobileLocationSearch(input, type);
+            showToast(`Searching for ${name}...`, 'info');
+        }
+
+        function hideMobileSuggestions() {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            suggestionsDiv.style.display = 'none';
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            const inputStart = document.getElementById('mobile-start-location');
+            const inputEnd = document.getElementById('mobile-end-location');
+            
+            if (!suggestionsDiv.contains(e.target) && 
+                e.target !== inputStart && 
+                e.target !== inputEnd) {
+                hideMobileSuggestions();
+            }
+        });
+
+        // Mobile-specific toast positioning
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                toast.style.position = 'fixed';
+                toast.style.top = '140px';
+                toast.style.left = '20px';
+                toast.style.right = '20px';
+                toast.style.width = 'auto';
+                toast.style.minWidth = 'auto';
+            }
+
+            toast.innerHTML = `
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        function updateMobileCalculateButton() {
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            const calcBtn = document.getElementById('mobile-calculate-btn');
+            
+            if (calcBtn && startInput && endInput) {
+                const hasStart = startInput.value.trim() !== '';
+                const hasEnd = endInput.value.trim() !== '';
+                calcBtn.disabled = !(hasStart && hasEnd);
+                
+                if (hasStart && hasEnd) {
+                    calcBtn.style.opacity = '1';
+                    calcBtn.innerHTML = '🔍 Find Safest Route';
+                } else {
+                    calcBtn.style.opacity = '0.6';
+                    calcBtn.innerHTML = hasStart ? '🎯 Set destination on map' : '📍 Set start location first';
+                }
+            }
+        }
+
+        function clearDestinationMobile() {
+            const mobileEnd = document.getElementById('mobile-end-location');
+            const desktopEnd = document.getElementById('end-location');
+            if (mobileEnd) mobileEnd.value = '';
+            if (desktopEnd) desktopEnd.value = '';
+            
+            // Clear destination marker if exists
+            if (window.destinationMarker) {
+                map.removeLayer(window.destinationMarker);
+                window.destinationMarker = null;
+            }
+            
+            updateMobileCalculateButton();
+            showToast('Destination cleared', 'info');
+        }
+
+        // Map Selection Mode
+        let mapSelectionMode = false;
+        let selectionType = 'start'; // 'start' or 'end'
+
+        function toggleMapSelectionMode() {
+            mapSelectionMode = !mapSelectionMode;
+            const btn = document.getElementById('map-select-btn');
+            const info = document.getElementById('selection-mode-info');
+            const body = document.body;
+
+            if (mapSelectionMode) {
+                btn.style.display = 'none';
+                info.style.display = 'flex';
+                body.classList.add('map-selection-active');
+                
+                // Determine what to select next
+                const startInput = document.getElementById('mobile-start-location');
+                const endInput = document.getElementById('mobile-end-location');
+                
+                if (!startInput.value.trim()) {
+                    selectionType = 'start';
+                } else if (!endInput.value.trim()) {
+                    selectionType = 'end';
+                } else {
+                    selectionType = 'start'; // Default to start if both are filled
+                }
+                
+                document.getElementById('selection-type').textContent = selectionType;
+                showToast(`Tap anywhere on map to set ${selectionType} point`, 'info');
+            } else {
+                cancelMapSelection();
+            }
+        }
+
+        function cancelMapSelection() {
+            mapSelectionMode = false;
+            const btn = document.getElementById('map-select-btn');
+            const info = document.getElementById('selection-mode-info');
+            const body = document.body;
+            
+            btn.style.display = 'block';
+            info.style.display = 'none';
+            body.classList.remove('map-selection-active');
+        }
+
+        // Enhanced map click handler
+        function handleMapClick(e) {
+            if (!mapSelectionMode) return;
+            
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            
+            // Reverse geocode to get address
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name ? 
+                        data.display_name.split(',').slice(0, 3).join(',') : 
+                        `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                    
+                    selectLocation(lat, lon, address, selectionType);
+                    
+                    // Auto-switch to destination if start was just set
+                    if (selectionType === 'start') {
+                        const endInput = document.getElementById('mobile-end-location');
+                        if (!endInput.value.trim()) {
+                            selectionType = 'end';
+                            document.getElementById('selection-type').textContent = 'destination';
+                            showToast('Now tap map to set destination', 'info');
+                            return; // Keep selection mode active
+                        }
+                    }
+                    
+                    // Exit selection mode
+                    cancelMapSelection();
+                })
+                .catch(() => {
+                    const address = `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                    selectLocation(lat, lon, address, selectionType);
+                    cancelMapSelection();
+                });
+        }
+
+        // Enhanced route calculation with mobile display
+        function triggerRouteCalculation() {
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            
+            if (!startInput.value.trim() || !endInput.value.trim()) {
+                showToast('Please set both start and destination points', 'warning');
+                return;
+            }
+            
+            // Trigger desktop route calculation
+            const desktopBtn = document.getElementById('calculate-route');
+            if (desktopBtn && !desktopBtn.disabled) {
+                desktopBtn.click();
+                
+                // Show loading and then results
+                showToast('Calculating safest routes...', 'info');
+                
+                setTimeout(() => {
+                    showMobilePanel('results');
+                    syncRouteResults();
+                }, 2000);
+            } else {
+                showToast('Please set valid start and destination points', 'warning');
+            }
+        }
+
+        // Enhanced route results sync
+        function syncRouteResults() {
+            const desktopContainer = document.getElementById('routes-container');
+            const mobileContainer = document.getElementById('mobile-routes-container');
+            
+            if (desktopContainer && mobileContainer) {
+                const desktopCards = desktopContainer.querySelectorAll('.route-card');
+                let mobileHTML = '';
+                
+                desktopCards.forEach((card, index) => {
+                    const title = card.querySelector('.route-title')?.textContent || `Route ${index + 1}`;
+                    const score = card.querySelector('.route-score')?.textContent || 'N/A';
+                    const badge = card.querySelector('.route-badge')?.textContent || '';
+                    const details = card.querySelectorAll('.detail-item');
+                    
+                    let detailsHTML = '';
+                    details.forEach(detail => {
+                        const label = detail.textContent.split(':')[0];
+                        const value = detail.querySelector('.detail-value')?.textContent || detail.textContent.split(':')[1];
+                        detailsHTML += `
+                            <div class="mobile-detail-item">
+                                ${label}: <span class="mobile-detail-value">${value}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    const isRecommended = card.classList.contains('recommended');
+                    
+                    mobileHTML += `
+                        <div class="mobile-route-card ${isRecommended ? 'recommended' : ''}" onclick="selectMobileRoute(${index})">
+                            <div class="mobile-route-header">
+                                <span class="mobile-route-title">${title} ${badge ? `• ${badge}` : ''}</span>
+                                <span class="mobile-route-score">${score}</span>
+                            </div>
+                            <div class="mobile-route-details">
+                                ${detailsHTML}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                mobileContainer.innerHTML = mobileHTML || '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No routes found. Try different locations.</div>';
+            }
+        }
+
+        function selectMobileRoute(index) {
+            const desktopCards = document.querySelectorAll('.route-card');
+            if (desktopCards[index]) {
+                desktopCards[index].click();
+                showToast('Route selected on map', 'success');
+                closeMobilePanel('results');
+            }
+        }
+
+        // Enhanced sync function with mobile button updates
+        function syncInputs() {
+            if (mobileStart && desktopStart) mobileStart.value = desktopStart.value;
+            if (mobileEnd && desktopEnd) mobileEnd.value = desktopEnd.value;
+            updateMobileCalculateButton();
+        }
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                toast.style.position = 'fixed';
+                toast.style.top = '140px';
+                toast.style.left = '20px';
+                toast.style.right = '20px';
+                toast.style.width = 'auto';
+                toast.style.minWidth = 'auto';
+            }
+
+            toast.innerHTML = `
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        function useCurrentLocationMobile() {
+            if (navigator.geolocation) {
+                showToast('Getting your location...', 'info');
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // Reverse geocode to get address
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name.split(',').slice(0, 3).join(',');
+                                selectLocation(lat, lon, address, 'start');
+                            })
+                            .catch(() => {
+                                selectLocation(lat, lon, `Current Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`, 'start');
+                            });
+                    },
+                    function(error) {
+                        showToast('Location access denied', 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
+        function showAppInfo() {
+            showToast('RouteGuard v1.0 - Your Safety Navigator', 'info');
+            closeMobilePanel('profile');
+        }
+
+        // Update mobile user info
+        function updateMobileUserInfo(user) {
+            const userInfo = document.getElementById('mobile-user-info');
+            const userEmail = document.getElementById('mobile-user-email');
+            
+            if (user && userEmail) {
+                userEmail.textContent = user.email;
+                userInfo.style.display = 'flex';
+            } else {
+                userInfo.style.display = 'none';
+            }
+        }
+            // Set initial mobile panel styles
+            const panels = ['mobile-route-panel', 'mobile-options-panel'];
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = 'none';
+                    panel.style.opacity = '0';
+                    panel.style.transition = 'opacity 0.3s ease';
+                }
+            });
+
+            // Update mobile button state on load
+            updateMobileCalculateButton();
+            
+            // Initialize map click handler when map is ready
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.on('click', handleMapClick);
+                }
+            }, 1000);
+        });
         function minimizeSOS() {
             document.getElementById('police-notified').classList.remove('active');
             // Hide the screen but show the minimized bar
@@ -362,15 +1057,30 @@
                 const emailSpan = document.getElementById('user-email');
                 const logoutBtn = document.getElementById('logout-btn');
 
+        // Update mobile user info
+        function updateMobileUserInfo(user) {
+            const userInfo = document.getElementById('mobile-user-info');
+            const userEmail = document.getElementById('mobile-user-email');
+            
+            if (user && userEmail) {
+                userEmail.textContent = user.email;
+                userInfo.style.display = 'flex';
+            } else {
+                userInfo.style.display = 'none';
+            }
+        }
+
                 if (user) {
                     if (emailSpan) {
                         emailSpan.textContent = user.email;
                         emailSpan.style.display = 'inline';
                     }
                     if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                    updateMobileUserInfo(user);
                 } else {
                     if (emailSpan) emailSpan.style.display = 'none';
                     if (logoutBtn) logoutBtn.style.display = 'none';
+                    updateMobileUserInfo(null);
                 }
             });
         }

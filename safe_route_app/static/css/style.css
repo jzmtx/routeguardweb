@@ -1,28 +1,145 @@
 /* RouteGuard - Modern Safety-Focused Design */
 
-/* ========== CSS Variables ========== */
+/* ========== Mobile-First Typography ========== */
 :root {
-    /* Colors - Premium Gradient Palette */
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Mobile-first font sizes */
+    --font-xs: 0.75rem;     /* 12px */
+    --font-sm: 0.875rem;    /* 14px */
+    --font-base: 1rem;      /* 16px - prevents zoom on iOS */
+    --font-lg: 1.125rem;    /* 18px */
+    --font-xl: 1.25rem;     /* 20px */
+    --font-2xl: 1.5rem;     /* 24px */
+    --font-3xl: 1.875rem;   /* 30px */
+    --font-4xl: 2.25rem;    /* 36px */
+    
+    /* Line heights */
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+}
+
+/* Base mobile typography */
+html {
+    font-size: 16px; /* Prevents zoom on iOS */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    font-size: var(--font-base);
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-optimized headings */
+h1 {
+    font-size: var(--font-2xl);
+    line-height: var(--leading-tight);
+    font-weight: 700;
+}
+
+h2 {
+    font-size: var(--font-xl);
+    line-height: var(--leading-tight);
+    font-weight: 600;
+}
+
+h3 {
+    font-size: var(--font-lg);
+    line-height: var(--leading-normal);
+    font-weight: 600;
+}
+
+h4 {
+    font-size: var(--font-base);
+    line-height: var(--leading-normal);
+    font-weight: 500;
+}
+
+/* Mobile paragraph and text */
+p {
+    font-size: var(--font-base);
+    line-height: var(--leading-relaxed);
+    margin-bottom: 1rem;
+}
+
+small {
+    font-size: var(--font-sm);
+}
+
+/* Mobile button text */
+button {
+    font-size: var(--font-base);
+    line-height: var(--leading-normal);
+}
+
+/* Mobile input text */
+input, textarea {
+    font-size: var(--font-base) !important; /* Prevents zoom */
+    line-height: var(--leading-normal);
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) {
+    h1 {
+        font-size: var(--font-3xl);
+    }
+    
+    h2 {
+        font-size: var(--font-2xl);
+    }
+    
+    h3 {
+        font-size: var(--font-xl);
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 1024px) {
+    h1 {
+        font-size: var(--font-4xl);
+    }
+    
+    h2 {
+        font-size: var(--font-3xl);
+    }
+    
+    h3 {
+        font-size: var(--font-2xl);
+    }
+}
+:root {
+    /* Colors - Hindu Saffron Orange & Sacred Blue Palette */
+    --primary-gradient: linear-gradient(135deg, #FF6B35 0%, #1E3A8A 100%);
     --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    --warning-gradient: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
     --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --saffron-gradient: linear-gradient(135deg, #FF9933 0%, #FF6B35 100%);
+    --blue-gradient: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
 
-    /* Solid Colors */
-    --primary: #667eea;
-    --primary-dark: #5568d3;
+    /* Solid Colors - Hindu Theme */
+    --primary: #FF6B35;        /* Saffron Orange */
+    --primary-dark: #FF5722;   /* Deeper Orange */
+    --secondary: #1E3A8A;      /* Sacred Blue */
+    --secondary-light: #3B82F6; /* Lighter Blue */
+    --saffron: #FF9933;        /* Traditional Saffron */
+    --sacred-blue: #1E40AF;    /* Deep Sacred Blue */
     --success: #10b981;
-    --warning: #f59e0b;
+    --warning: #FF8C42;        /* Orange Warning */
     --danger: #ef4444;
-    --info: #6366f1;
+    --info: #3B82F6;           /* Blue Info */
 
-    /* Neutrals - Dark Mode */
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    /* Neutrals - Dark Mode with Hindu Theme Accents */
+    --bg-primary: #0A0E1A;     /* Deep Navy */
+    --bg-secondary: #1A1F2E;   /* Dark Blue-Grey */
+    --bg-tertiary: #2A3441;    /* Medium Blue-Grey */
+    --bg-accent: rgba(255, 107, 53, 0.05); /* Subtle Orange Tint */
+    --text-primary: #F8FAFC;   /* Pure White */
+    --text-secondary: #E2E8F0; /* Light Grey */
+    --text-muted: #94A3B8;     /* Muted Grey */
+    --text-orange: #FF9933;    /* Saffron Text */
+    --text-blue: #60A5FA;      /* Blue Text */
 
     /* Borders & Shadows */
     --border-color: #334155;
@@ -95,10 +212,11 @@ body {
 .logo h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    background: var(--primary-gradient);
+    background: var(--saffron-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-shadow: 0 0 20px rgba(255, 153, 51, 0.3);
 }
 
 .header-stats {
@@ -275,14 +393,16 @@ body {
 
 .btn-primary {
     flex: 1;
-    background: var(--primary-gradient);
+    background: var(--saffron-gradient);
     color: white;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    border: 1px solid rgba(255, 153, 51, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6);
+    background: linear-gradient(135deg, #FF8C42 0%, #FF5722 100%);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -338,8 +458,9 @@ body {
 }
 
 .route-card.recommended {
-    border-color: var(--success);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+    border-color: var(--saffron);
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.15) 0%, rgba(30, 58, 138, 0.05) 100%);
+    box-shadow: 0 0 20px rgba(255, 153, 51, 0.2);
 }
 
 .route-header {
@@ -363,8 +484,9 @@ body {
 }
 
 .badge-success {
-    background: var(--success-gradient);
+    background: var(--saffron-gradient);
     color: white;
+    box-shadow: 0 2px 10px rgba(255, 153, 51, 0.3);
 }
 
 .badge-warning {
@@ -423,8 +545,9 @@ body {
 
 /* ========== AI Section ========== */
 .ai-section {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+    border-color: var(--saffron);
+    box-shadow: inset 0 0 20px rgba(255, 153, 51, 0.1);
 }
 
 .ai-content {
@@ -434,7 +557,8 @@ body {
     padding: var(--spacing-md);
     background: var(--bg-primary);
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--primary);
+    border-left: 3px solid var(--saffron);
+    border-right: 1px solid var(--secondary);
 }
 
 /* ========== Upload Section ========== */
@@ -669,7 +793,345 @@ body {
     }
 }
 
-/* ========== Responsive Design ========== */
+/* ========== Mobile-First Responsive Enhancements ========== */
+
+/* Mobile Navigation */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--saffron);
+    padding: 12px;
+    z-index: 2000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.mobile-nav-item.active {
+    color: var(--saffron);
+    background: rgba(255, 153, 51, 0.1);
+}
+
+.mobile-nav-item svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Mobile Route Panel */
+.mobile-route-panel {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 15px;
+    right: 15px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 20px;
+    z-index: 1500;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--saffron);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.mobile-route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.mobile-route-title {
+    color: var(--saffron);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.mobile-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all var(--transition-base);
+}
+
+.mobile-close-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+/* Mobile Options Panel */
+.mobile-options-panel {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 15px;
+    right: 15px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 20px;
+    z-index: 1500;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--secondary);
+}
+
+.mobile-option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+}
+
+.mobile-option-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--saffron);
+}
+
+.mobile-option-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--saffron);
+}
+
+.mobile-option-text {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Enhanced Mobile Bottom Sheet */
+@media (max-width: 768px) {
+    .mobile-bottom-sheet {
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border: 2px solid var(--saffron);
+        box-shadow: 0 -10px 40px rgba(255, 153, 51, 0.2), 0 0 20px rgba(30, 58, 138, 0.1);
+    }
+
+    .sheet-primary-btn {
+        background: var(--saffron-gradient);
+        box-shadow: 0 4px 15px rgba(255, 153, 51, 0.4);
+        border: 1px solid rgba(255, 153, 51, 0.3);
+    }
+
+    .sheet-primary-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(255, 153, 51, 0.6);
+    }
+
+    .glass-search {
+        background: rgba(26, 31, 46, 0.9);
+        border: 1px solid rgba(255, 153, 51, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 153, 51, 0.1);
+    }
+
+    .stat-chip {
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.9) 0%, rgba(30, 58, 138, 0.9) 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Show mobile navigation */
+    .mobile-nav {
+        display: block;
+    }
+
+    /* Adjust bottom sheet position for nav */
+    .mobile-bottom-sheet {
+        bottom: 90px;
+    }
+
+    /* Adjust SOS button position */
+    .sos-wrapper {
+        bottom: 420px !important;
+    }
+}
+
+/* Mobile Route Cards Enhancement */
+@media (max-width: 768px) {
+    .route-card {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(30, 58, 138, 0.05) 100%);
+        border: 1px solid var(--bg-tertiary);
+        transition: all var(--transition-base);
+    }
+
+    .route-card:hover {
+        border-color: var(--saffron);
+        box-shadow: 0 4px 20px rgba(255, 153, 51, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .route-score {
+        background: var(--saffron-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+}
+
+/* Mobile Input Enhancements */
+@media (max-width: 768px) {
+    .sheet-input-group {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border: 1px solid var(--saffron);
+        box-shadow: inset 0 0 10px rgba(255, 153, 51, 0.1);
+    }
+
+    .sheet-input-row {
+        border-bottom: 1px solid rgba(255, 153, 51, 0.2);
+    }
+
+    .sheet-input-row input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .sheet-icon {
+        color: var(--saffron);
+    }
+
+    .icon-btn {
+        background: rgba(255, 153, 51, 0.1);
+        border: 1px solid rgba(255, 153, 51, 0.3);
+        color: var(--saffron);
+    }
+
+    .icon-btn:active {
+        background: rgba(255, 153, 51, 0.2);
+        transform: scale(0.95);
+    }
+}
+
+/* Mobile Toast Notifications */
+@media (max-width: 768px) {
+    .toast {
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border-left: 4px solid var(--saffron);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 153, 51, 0.2);
+    }
+
+    .toast-container {
+        top: 120px; /* Below mobile top bar */
+    }
+}
+
+/* Mobile Loading Overlay */
+@media (max-width: 768px) {
+    .loading-overlay {
+        background: rgba(10, 14, 26, 0.95);
+    }
+
+    .spinner {
+        border-top-color: var(--saffron);
+        box-shadow: 0 0 20px rgba(255, 153, 51, 0.3);
+    }
+}
+
+/* Accessibility Enhancements */
+@media (max-width: 768px) {
+    /* Larger touch targets */
+    .mobile-nav-item,
+    .icon-btn,
+    .mobile-close-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .mobile-bottom-sheet {
+            border-width: 3px;
+        }
+
+        .sheet-primary-btn {
+            border-width: 2px;
+        }
+
+        .glass-search {
+            border-width: 2px;
+        }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+        .mobile-bottom-sheet {
+            animation: none;
+        }
+
+        .route-card:hover {
+            transform: none;
+        }
+
+        .sheet-primary-btn:active {
+            transform: none;
+        }
+    }
+}
+
+/* Dark theme enhancements for mobile */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+    .stat-chip {
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.8) 0%, rgba(30, 58, 138, 0.8) 100%);
+    }
+
+    .glass-search {
+        background: rgba(10, 14, 26, 0.95);
+    }
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+    .mobile-bottom-sheet {
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 500px;
+        bottom: 20px;
+    }
+
+    .mobile-nav {
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 500px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .sos-wrapper {
+        bottom: 120px !important;
+        right: 10% !important;
+    }
+}
 
 /* Tablet (1024px and below) */
 @media (max-width: 1024px) {
@@ -1477,5 +1939,725 @@ body {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+}
+
+/* ========== Mobile Viewport and Touch Optimizations ========== */
+@media (max-width: 768px) {
+    /* Prevent zoom on input focus */
+    input[type="text"],
+    input[type="search"],
+    textarea {
+        font-size: 16px !important;
+        transform: translateZ(0);
+    }
+
+    /* Smooth scrolling for mobile */
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Optimize touch targets */
+    button,
+    .btn-primary,
+    .btn-secondary,
+    .mobile-nav-item,
+    .mobile-option-item {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+    }
+
+    /* Prevent text selection on UI elements */
+    .mobile-nav,
+    .mobile-bottom-sheet,
+    .mobile-route-panel,
+    .mobile-options-panel {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Safe area handling for notched devices */
+    .mobile-top-bar {
+        top: max(40px, env(safe-area-inset-top));
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+    }
+
+    .mobile-nav {
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+
+    .mobile-bottom-sheet {
+        bottom: max(90px, calc(90px + env(safe-area-inset-bottom)));
+        left: max(15px, env(safe-area-inset-left));
+        right: max(15px, env(safe-area-inset-right));
+    }
+
+    /* Haptic feedback simulation */
+    .mobile-nav-item:active,
+    .sheet-primary-btn:active,
+    .icon-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+
+    /* Loading states for mobile */
+    .sheet-primary-btn:disabled {
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.3) 0%, rgba(30, 58, 138, 0.3) 100%);
+        cursor: not-allowed;
+    }
+
+    /* Mobile-specific animations */
+    .mobile-route-panel,
+    .mobile-options-panel {
+        animation: slideUpMobile 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    @keyframes slideUpMobile {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Improved focus states for accessibility */
+    .mobile-nav-item:focus,
+    .icon-btn:focus,
+    .mobile-option-item:focus {
+        outline: 2px solid var(--saffron);
+        outline-offset: 2px;
+    }
+
+    /* Dark mode optimizations */
+    @media (prefers-color-scheme: dark) {
+        .mobile-bottom-sheet,
+        .mobile-route-panel,
+        .mobile-options-panel {
+            background: linear-gradient(135deg, #1A1F2E 0%, rgba(30, 58, 138, 0.15) 100%);
+        }
+    }
+}
+
+/* ========== Progressive Web App Enhancements ========== */
+@media (display-mode: standalone) {
+    .mobile-top-bar {
+        top: 20px;
+    }
+
+    .header {
+        display: none;
+    }
+}
+
+/* ========== High DPI and Retina Display Optimizations ========== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .mobile-nav,
+    .mobile-bottom-sheet,
+    .mobile-route-panel,
+    .mobile-options-panel {
+        border-width: 0.5px;
+    }
+
+    .sheet-primary-btn {
+        box-shadow: 0 2px 8px rgba(255, 153, 51, 0.4);
+    }
+}
+
+/* ========== Foldable Device Support ========== */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    .mobile-bottom-sheet {
+        left: 25%;
+        right: 25%;
+        width: 50%;
+    }
+
+    .mobile-nav {
+        left: 25%;
+        right: 25%;
+        width: 50%;
+        border-radius: 12px;
+    }
+}
+/* ========== Mobile Location Search Suggestions ========== */
+@media (max-width: 768px) {
+    .mobile-suggestions {
+        background: var(--bg-primary);
+        border: 1px solid var(--saffron);
+        border-radius: 8px;
+        margin-top: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(255, 153, 51, 0.2);
+        z-index: 1000;
+    }
+
+    .suggestion-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--bg-tertiary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all var(--transition-base);
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item:active {
+        background: rgba(255, 153, 51, 0.1);
+        color: var(--saffron);
+    }
+
+    .suggestion-icon {
+        color: var(--saffron);
+        font-size: 1rem;
+    }
+
+    .suggestion-text {
+        flex: 1;
+    }
+
+    .suggestion-main {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .suggestion-sub {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+
+    /* Quick location buttons */
+    .quick-locations {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .quick-location-btn {
+        background: rgba(255, 153, 51, 0.1);
+        border: 1px solid var(--saffron);
+        color: var(--saffron);
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .quick-location-btn:active {
+        background: rgba(255, 153, 51, 0.2);
+        transform: scale(0.95);
+    }
+}
+/* ========== Map Selection Mode ========== */
+@media (max-width: 768px) {
+    .map-selection-toggle {
+        margin-top: 12px;
+    }
+
+    .map-select-btn {
+        background: rgba(30, 58, 138, 0.1);
+        border: 1px solid var(--secondary);
+        color: var(--secondary);
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        width: 100%;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .map-select-btn:active {
+        background: rgba(30, 58, 138, 0.2);
+        transform: scale(0.98);
+    }
+
+    .selection-mode-info {
+        background: linear-gradient(135deg, var(--saffron) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: pulse 2s infinite;
+    }
+
+    .selection-text {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cancel-selection {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
+    /* Enhanced route results display */
+    .mobile-route-panel {
+        max-height: 70vh;
+    }
+
+    .mobile-routes-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .mobile-route-card {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(30, 58, 138, 0.05) 100%);
+        border: 1px solid var(--bg-tertiary);
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .mobile-route-card:active {
+        transform: scale(0.98);
+        border-color: var(--saffron);
+        box-shadow: 0 4px 20px rgba(255, 153, 51, 0.2);
+    }
+
+    .mobile-route-card.recommended {
+        border-color: var(--saffron);
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.1) 0%, rgba(30, 58, 138, 0.05) 100%);
+    }
+
+    .mobile-route-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .mobile-route-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .mobile-route-score {
+        background: var(--saffron-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .mobile-route-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--bg-tertiary);
+    }
+
+    .mobile-detail-item {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .mobile-detail-value {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    /* Map interaction improvements */
+    .leaflet-container {
+        cursor: crosshair;
+    }
+
+    .map-selection-active .leaflet-container {
+        cursor: crosshair !important;
+    }
+
+    .map-selection-active .leaflet-clickable {
+        cursor: crosshair !important;
+    }
+
+    /* Larger touch targets for map markers */
+    .custom-marker {
+        font-size: 24px !important;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+        cursor: pointer;
+    }
+}
+/* ========== Mobile-Friendly Header ========== */
+@media (max-width: 768px) {
+    .header {
+        padding: 12px 16px;
+    }
+    
+    .logo h1 {
+        font-size: var(--font-xl);
+        font-weight: 700;
+    }
+    
+    .header-stats {
+        gap: 12px;
+    }
+    
+    .stat-value {
+        font-size: var(--font-lg);
+        font-weight: 700;
+    }
+    
+    .stat-label {
+        font-size: var(--font-xs);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+}
+
+/* ========== Mobile-Friendly Sidebar ========== */
+@media (max-width: 768px) {
+    .sidebar-section h2 {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .sidebar-section h3 {
+        font-size: var(--font-base);
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .subtitle {
+        font-size: var(--font-sm);
+        line-height: var(--leading-relaxed);
+    }
+    
+    .input-group label {
+        font-size: var(--font-sm);
+        font-weight: 600;
+    }
+    
+    .btn-primary, .btn-secondary {
+        font-size: var(--font-base);
+        font-weight: 600;
+        padding: 12px 16px;
+        min-height: 44px;
+    }
+}
+
+/* ========== Mobile-Friendly Route Cards ========== */
+@media (max-width: 768px) {
+    .route-title {
+        font-size: var(--font-base);
+        font-weight: 600;
+    }
+    
+    .route-score {
+        font-size: var(--font-2xl);
+        font-weight: 700;
+    }
+    
+    .route-badge {
+        font-size: var(--font-xs);
+        font-weight: 600;
+        padding: 4px 8px;
+    }
+    
+    .detail-item {
+        font-size: var(--font-sm);
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        font-size: var(--font-sm);
+    }
+}
+
+/* ========== Mobile Bottom Sheet Typography ========== */
+@media (max-width: 768px) {
+    .sheet-title {
+        font-size: var(--font-xl);
+        font-weight: 600;
+        line-height: var(--leading-tight);
+    }
+    
+    .sheet-input-row input {
+        font-size: var(--font-base) !important;
+        line-height: var(--leading-normal);
+    }
+    
+    .sheet-primary-btn {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        line-height: var(--leading-normal);
+    }
+    
+    .mobile-nav-item {
+        font-size: var(--font-xs);
+        font-weight: 500;
+    }
+    
+    .mobile-route-title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+    }
+    
+    .mobile-route-score {
+        font-size: var(--font-2xl);
+        font-weight: 700;
+    }
+    
+    .mobile-detail-item {
+        font-size: var(--font-sm);
+    }
+    
+    .mobile-detail-value {
+        font-weight: 600;
+    }
+    
+    .suggestion-main {
+        font-size: var(--font-base);
+        font-weight: 500;
+    }
+    
+    .suggestion-sub {
+        font-size: var(--font-sm);
+    }
+    
+    .quick-location-btn {
+        font-size: var(--font-sm);
+        font-weight: 500;
+    }
+}
+
+/* ========== Mobile Toast Typography ========== */
+@media (max-width: 768px) {
+    .toast-message {
+        font-size: var(--font-base);
+        line-height: var(--leading-normal);
+        font-weight: 500;
+    }
+}
+
+/* ========== Mobile AI Section Typography ========== */
+@media (max-width: 768px) {
+    .ai-content {
+        font-size: var(--font-base);
+        line-height: var(--leading-relaxed);
+    }
+}
+
+/* ========== Mobile Emergency Section Typography ========== */
+@media (max-width: 768px) {
+    .warning-message {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        line-height: var(--leading-normal);
+    }
+    
+    .contact-label {
+        font-size: var(--font-sm);
+    }
+    
+    .contact-number {
+        font-size: var(--font-lg);
+        font-weight: 700;
+    }
+    
+    .resource-name {
+        font-size: var(--font-base);
+        font-weight: 600;
+    }
+    
+    .resource-distance {
+        font-size: var(--font-sm);
+    }
+}
+
+/* ========== Mobile Top Bar Typography ========== */
+@media (max-width: 768px) {
+    .glass-search input {
+        font-size: var(--font-base) !important;
+        line-height: var(--leading-normal);
+    }
+    
+    .stat-chip {
+        font-size: var(--font-xs);
+        font-weight: 600;
+        line-height: var(--leading-tight);
+    }
+}
+
+/* ========== Improved Readability ========== */
+@media (max-width: 768px) {
+    /* Better contrast for small screens */
+    .text-muted {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Improved spacing for touch */
+    .mobile-option-text {
+        font-size: var(--font-base);
+        font-weight: 500;
+        line-height: var(--leading-normal);
+    }
+    
+    .selection-text {
+        font-size: var(--font-base);
+        font-weight: 600;
+        line-height: var(--leading-normal);
+    }
+    
+    .cancel-selection {
+        font-size: var(--font-sm);
+        font-weight: 500;
+    }
+}
+/* ========== Enhanced Launch Button ========== */
+@media (max-width: 768px) {
+    .sheet-primary-btn {
+        background: linear-gradient(135deg, #FF9933 0%, #FF6B35 50%, #1E3A8A 100%);
+        border: 2px solid rgba(255, 153, 51, 0.3);
+        box-shadow: 0 6px 20px rgba(255, 153, 51, 0.4), 0 0 0 0 rgba(255, 153, 51, 0.7);
+        animation: pulse-glow 2s infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sheet-primary-btn:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .sheet-primary-btn:active:before {
+        left: 100%;
+    }
+
+    .sheet-primary-btn:disabled {
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.3) 0%, rgba(30, 58, 138, 0.3) 100%);
+        animation: none;
+        box-shadow: none;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% {
+            box-shadow: 0 6px 20px rgba(255, 153, 51, 0.4), 0 0 0 0 rgba(255, 153, 51, 0.7);
+        }
+        50% {
+            box-shadow: 0 6px 20px rgba(255, 153, 51, 0.6), 0 0 0 10px rgba(255, 153, 51, 0);
+        }
+    }
+}
+
+/* ========== Mobile Profile Panel ========== */
+@media (max-width: 768px) {
+    .mobile-profile-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .mobile-user-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--saffron);
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--saffron-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .user-details {
+        flex: 1;
+    }
+
+    .user-email {
+        font-size: var(--font-base);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .user-status {
+        font-size: var(--font-sm);
+        color: var(--text-muted);
+    }
+
+    .mobile-nav-items {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    .mobile-nav-item {
+        padding: 8px 4px;
+    }
+}
+/* ========== Hide Mobile Panels by Default ========== */
+@media (max-width: 768px) {
+    .mobile-route-panel,
+    .mobile-options-panel,
+    #mobile-profile-panel {
+        display: none !important;
+        opacity: 0;
+        transform: translateY(100%);
+        transition: all 0.3s ease;
+    }
+
+    .mobile-route-panel.show,
+    .mobile-options-panel.show,
+    #mobile-profile-panel.show {
+        display: block !important;
+        opacity: 1;
+        transform: translateY(0);
     }
 }
