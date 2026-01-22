@@ -150,16 +150,17 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    if (data.user.is_police) {
-                        window.location.href = '/police/dashboard/';
-                    } else {
-                        window.location.href = '/';
-                    }
+                    console.log("Login success:", data);
+                    const dest = data.user.is_police ? '/police/dashboard/' : '/app/';
+                    console.log("Redirecting to:", dest);
+                    window.location.href = dest;
                 } else {
+                    console.error("Login failed:", data);
                     throw new Error(data.error || 'Login failed');
                 }
 
             } catch (error) {
+                console.error("Login catch error:", error);
                 errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
