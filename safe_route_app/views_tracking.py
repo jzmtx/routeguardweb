@@ -28,6 +28,14 @@ def start_tracking(request):
         
         user = UserProfile.objects.get(firebase_uid=firebase_uid)
         
+        # Convert safety score (0-100) to grade (A-F)
+        raw_score = data.get('safety_score', 0)
+        grade = 'F'
+        if raw_score >= 80: grade = 'A'
+        elif raw_score >= 60: grade = 'B'
+        elif raw_score >= 40: grade = 'C'
+        elif raw_score >= 20: grade = 'D'
+            
         # Create travel history record
         travel = TravelHistory.objects.create(
             user=user,
@@ -37,7 +45,9 @@ def start_tracking(request):
             end_longitude=data.get('end_lng'),
             start_address=data.get('start_address', ''),
             end_address=data.get('end_address', ''),
-            safety_score=data.get('safety_score', 0),
+            safety_score=grade,  # Convert float to Char key
+            distance_km=0.0,  # Default required field
+            duration_minutes=0,  # Default required field
             route_data=data.get('route_data', {}),
             video_enabled=True  # Enable by default
         )

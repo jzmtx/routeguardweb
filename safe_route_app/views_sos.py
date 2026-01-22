@@ -85,16 +85,6 @@ def trigger_sos(request):
         # Find nearest police officer
         nearest_officer = find_nearest_police(latitude, longitude)
         
-        # Create emergency alert (assigned_officer might be None)
-        alert = EmergencyAlert.objects.create(
-            user=user,
-            alert_latitude=latitude,
-            alert_longitude=longitude,
-            alert_address='',  # Will be geocoded later
-            status='active',
-            assigned_officer=nearest_officer
-        )
-
         if not nearest_officer:
             # Fallback: No police found nearby
             # Find closest station regardless of jurisdiction
