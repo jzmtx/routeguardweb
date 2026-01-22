@@ -2,12 +2,15 @@
 Views for RouteGuard application.
 Handles all API endpoints and page rendering.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 import json
 from datetime import datetime
+import random
 
 from .utils.scorer import calculate_safety_score
 from .utils.data_generator import generate_sample_data_for_location
@@ -18,15 +21,22 @@ from .models import CrimePoint, SafetyZone
 
 from .views_auth import get_firebase_config
 
+def home(request):
+    """Render the landing page"""
+    return render(request, 'home.html')
+
+@login_required(login_url='safe_route_app:login_page')
 def index(request):
     """
     Render the main map interface.
+    Requires login.
     """
     context = {
         'crime_count': CrimePoint.objects.count(),
         'safety_zone_count': SafetyZone.objects.count(),
         'has_gemini': bool(get_gemini_advisor().enabled),
         'firebase_config': get_firebase_config(),
+        'google_maps_key': settings.GEMINI_API_KEY, # We might need this or not
     }
     return render(request, 'index.html', context)
 
