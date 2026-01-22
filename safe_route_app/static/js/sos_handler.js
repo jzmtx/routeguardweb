@@ -265,42 +265,55 @@ class SOSHandler {
         
         console.log('🛑 Ending SOS');
         
-        // Stop all intervals
-        clearInterval(this.locationInterval);
-        clearInterval(this.recordingTimer);
-        
-        // Stop recordings
-        if (this.audioRecorder && this.audioRecorder.state !== 'inactive') {
-            this.audioRecorder.stop();
+        try {
+            // Stop all intervals
+            if (this.locationInterval) clearInterval(this.locationInterval);
+            if (this.recordingTimer) clearInterval(this.recordingTimer);
+            
+            // Stop recordings
+            if (this.audioRecorder && this.audioRecorder.state !== 'inactive') {
+                this.audioRecorder.stop();
+            }
+            if (this.videoRecorder && this.videoRecorder.state !== 'inactive') {
+                this.videoRecorder.stop();
+            }
+            
+            // Notify backend
+            if (this.alertId) {
+                try {
+                    await fetch('/api/sos/resolve/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            alert_id: this.alertId,
+                            resolved_by: 'user'
+                        })
+                    });
+                } catch (err) {
+                    console.error('Failed to notify backend of SOS end:', err);
+                }
+            }
+        } catch (e) {
+            console.error('Error during SOS termination sequence:', e);
+        } finally {
+            // ALWAYS Reset UI
+            const notifiedScreen = document.getElementById('police-notified');
+            if (notifiedScreen) notifiedScreen.classList.remove('active');
+            
+            const recordingIndicator = document.getElementById('recording-indicator');
+            if (recordingIndicator) recordingIndicator.classList.remove('active');
+            
+            const sosTrigger = document.getElementById('sos-trigger');
+            if (sosTrigger) sosTrigger.classList.remove('active');
+            
+            this.isActive = false;
+            this.alertId = null;
+            
+            // alert('Emergency alert ended.'); // Optional, maybe annoying if it blocks
         }
-        if (this.videoRecorder && this.videoRecorder.state !== 'inactive') {
-            this.videoRecorder.stop();
-        }
-        
-        // Notify backend
-        if (this.alertId) {
-            await fetch('/api/sos/resolve/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    alert_id: this.alertId,
-                    resolved_by: 'user'
-                })
-            });
-        }
-        
-        // Reset UI
-        document.getElementById('police-notified').classList.remove('active');
-        document.getElementById('recording-indicator').classList.remove('active');
-        document.getElementById('sos-trigger').classList.remove('active');
-        
-        this.isActive = false;
-        this.alertId = null;
-        
-        alert('Emergency alert ended. Stay safe!');
     }
     
     getCurrentPosition() {
