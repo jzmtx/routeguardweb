@@ -2661,3 +2661,116 @@ body {
         transform: translateY(0);
     }
 }
+/* ========== Fix Mobile Navigation Issues ========== */
+@media (max-width: 768px) {
+    .mobile-nav {
+        z-index: 2500 !important;
+        pointer-events: auto;
+    }
+
+    .mobile-nav-item {
+        pointer-events: auto;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255, 153, 51, 0.2);
+    }
+
+    .mobile-bottom-sheet {
+        z-index: 1500;
+        pointer-events: auto;
+    }
+
+    .mobile-route-panel,
+    .mobile-options-panel,
+    #mobile-profile-panel {
+        z-index: 2000 !important;
+        pointer-events: auto;
+    }
+
+    /* Fix map selection mode */
+    .map-selection-active .mobile-bottom-sheet {
+        transform: translateY(80%) !important;
+    }
+
+    .map-selection-active .leaflet-container {
+        cursor: crosshair !important;
+        z-index: 1000;
+    }
+
+    /* Ensure panels are clickable */
+    .mobile-route-header,
+    .mobile-option-item,
+    .mobile-close-btn {
+        pointer-events: auto;
+        cursor: pointer;
+    }
+}
+/* ========== Fix SOS Minimize Functionality ========== */
+.police-notified-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    z-index: 3000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.police-notified-screen.active {
+    display: flex !important;
+}
+
+#sos-minimized-bar {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ef4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    z-index: 2500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    animation: pulse-red 2s infinite;
+    pointer-events: auto;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.8), 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
+.notified-header button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 3001;
+}
+
+@media (max-width: 768px) {
+    #sos-minimized-bar {
+        bottom: 120px;
+        font-size: 0.9rem;
+    }
+    
+    .notified-header button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}

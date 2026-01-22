@@ -660,6 +660,13 @@
             map.setView(latLng, 15);
             hideMobileSuggestions();
             updateMobileCalculateButton();
+            
+            // Enable desktop calculate button
+            const desktopCalcBtn = document.getElementById('calculate-route');
+            if (desktopCalcBtn && window.startPoint && window.endPoint) {
+                desktopCalcBtn.disabled = false;
+            }
+            
             showToast(`${type === 'start' ? 'Start' : 'Destination'} set: ${name}`, 'success');
         }
 
@@ -766,12 +773,15 @@
             mapSelectionMode = !mapSelectionMode;
             const btn = document.getElementById('map-select-btn');
             const info = document.getElementById('selection-mode-info');
-            const body = document.body;
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
 
             if (mapSelectionMode) {
                 btn.style.display = 'none';
                 info.style.display = 'flex';
-                body.classList.add('map-selection-active');
+                
+                // Minimize bottom sheet
+                bottomSheet.style.transform = 'translateY(80%)';
+                bottomSheet.style.transition = 'transform 0.3s ease';
                 
                 // Determine what to select next
                 const startInput = document.getElementById('mobile-start-location');
@@ -782,7 +792,7 @@
                 } else if (!endInput.value.trim()) {
                     selectionType = 'end';
                 } else {
-                    selectionType = 'start'; // Default to start if both are filled
+                    selectionType = 'start';
                 }
                 
                 document.getElementById('selection-type').textContent = selectionType;
@@ -796,11 +806,15 @@
             mapSelectionMode = false;
             const btn = document.getElementById('map-select-btn');
             const info = document.getElementById('selection-mode-info');
-            const body = document.body;
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
             
             btn.style.display = 'block';
             info.style.display = 'none';
-            body.classList.remove('map-selection-active');
+            
+            // Restore bottom sheet
+            bottomSheet.style.transform = 'translateY(0)';
+            
+            document.body.classList.remove('map-selection-active');
         }
 
         // Enhanced map click handler
@@ -851,9 +865,15 @@
                 return;
             }
             
+            if (!window.startPoint || !window.endPoint) {
+                showToast('Please select locations on map or from search', 'warning');
+                return;
+            }
+            
             // Trigger desktop route calculation
             const desktopBtn = document.getElementById('calculate-route');
-            if (desktopBtn && !desktopBtn.disabled) {
+            if (desktopBtn) {
+                desktopBtn.disabled = false;
                 desktopBtn.click();
                 
                 // Show loading and then results
@@ -864,7 +884,7 @@
                     syncRouteResults();
                 }, 2000);
             } else {
-                showToast('Please set valid start and destination points', 'warning');
+                showToast('Route calculation unavailable', 'error');
             }
         }
 
@@ -1022,20 +1042,63 @@
                 if (typeof map !== 'undefined') {
                     map.on('click', handleMapClick);
                 }
+        // Initialize mobile features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial mobile panel styles
+            const panels = ['mobile-route-panel', 'mobile-options-panel', 'mobile-profile-panel'];
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = 'none';
+                    panel.style.opacity = '0';
+                    panel.style.transition = 'opacity 0.3s ease';
+                }
+            });
+
+            // Update mobile button state on load
+            updateMobileCalculateButton();
+            
+            // Initialize map click handler when map is ready
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.on('click', handleMapClick);
+                }
             }, 1000);
+            
+            // Fix mobile navigation clicks
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    this.click();
+                });
+            });
         });
         function minimizeSOS() {
-            document.getElementById('police-notified').classList.remove('active');
-            // Hide the screen but show the minimized bar
-            // Note: class 'active' handles visibility usually, but we might need explicit display control if CSS is strict
-            document.getElementById('police-notified').style.display = 'none';
-            document.getElementById('sos-minimized-bar').style.display = 'flex';
+            const policeScreen = document.getElementById('police-notified');
+            const minimizedBar = document.getElementById('sos-minimized-bar');
+            
+            if (policeScreen) {
+                policeScreen.style.display = 'none';
+                policeScreen.classList.remove('active');
+            }
+            
+            if (minimizedBar) {
+                minimizedBar.style.display = 'flex';
+            }
         }
 
         function maximizeSOS() {
-            document.getElementById('police-notified').style.display = 'flex';
-            // We can re-add active if needed, but display:flex forces it
-            document.getElementById('sos-minimized-bar').style.display = 'none';
+            const policeScreen = document.getElementById('police-notified');
+            const minimizedBar = document.getElementById('sos-minimized-bar');
+            
+            if (policeScreen) {
+                policeScreen.style.display = 'flex';
+                policeScreen.classList.add('active');
+            }
+            
+            if (minimizedBar) {
+                minimizedBar.style.display = 'none';
+            }
         }
 
         async function logoutUser() {
