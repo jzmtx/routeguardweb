@@ -15,9 +15,16 @@ from .models import EmergencyAlert, UserProfile, PoliceAuthority
 
 def find_nearest_police(latitude, longitude):
     """
-    Find the nearest police officer based on jurisdiction
+    Find the nearest ON-DUTY police officer.
+    Logic:
+    1. Search within 10km
+    2. If none, search within 30km
+    3. If none, return None (trigger fallback)
     """
     def haversine_distance(lat1, lon1, lat2, lon2):
+        if not all([lat1, lon1, lat2, lon2]):
+            return float('inf')
+            
         R = 6371  # Earth radius in km
         
         dlat = math.radians(lat2 - lat1)
@@ -28,36 +35,42 @@ def find_nearest_police(latitude, longitude):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
     
-    # Get all verified police officers
-    police_officers = PoliceAuthority.objects.filter(verified_by_admin=True)
+    # Get all verified and ON-DUTY police officers
+    # We strictly only want officers who are currently working
+    police_officers = PoliceAuthority.objects.filter(
+        verified_by_admin=True,
+        is_on_duty=True
+    )
     
-    nearest = None
-    min_distance = float('inf')
-    
+    if not police_officers.exists():
+        return None
+
+    # Calculate distances for all on-duty officers
+    # Prefer current location (patrolling), fallback to jurisdiction center
+    candidates = []
     for officer in police_officers:
-        distance = haversine_distance(
-            latitude, longitude,
-            officer.jurisdiction_lat, officer.jurisdiction_lng
-        )
+        # Use current location if available, else jurisdiction
+        target_lat = officer.current_lat if officer.current_lat else officer.jurisdiction_lat
+        target_lng = officer.current_lng if officer.current_lng else officer.jurisdiction_lng
         
-        # Check if within jurisdiction radius
-        if distance <= (officer.jurisdiction_radius / 1000):  # Convert meters to km
-            if distance < min_distance:
-                min_distance = distance
-                nearest = officer
+        dist = haversine_distance(latitude, longitude, target_lat, target_lng)
+        candidates.append((dist, officer))
     
-    # If no officer in jurisdiction, find closest one
-    if not nearest and police_officers.exists():
-        for officer in police_officers:
-            distance = haversine_distance(
-                latitude, longitude,
-                officer.jurisdiction_lat, officer.jurisdiction_lng
-            )
-            if distance < min_distance:
-                min_distance = distance
-                nearest = officer
+    # Sort by distance
+    candidates.sort(key=lambda x: x[0])
     
-    return nearest
+    # Priority 1: Within 10km
+    tier1 = [c for c in candidates if c[0] <= 10.0]
+    if tier1:
+        return tier1[0][1]  # Return closest within 10km
+        
+    # Priority 2: Within 30km
+    tier2 = [c for c in candidates if c[0] <= 30.0]
+    if tier2:
+        return tier2[0][1]  # Return closest within 30km
+        
+    # No one within 30km
+    return None
 
 
 @csrf_exempt
@@ -86,42 +99,31 @@ def trigger_sos(request):
         nearest_officer = find_nearest_police(latitude, longitude)
         
         if not nearest_officer:
-            # Fallback: No police found nearby
-            # Find closest station regardless of jurisdiction
-            police_officers = PoliceAuthority.objects.filter(verified_by_admin=True)
-            nearest_station_info = None
+            # Fallback: No police found within 30km
+            # Do NOT search globally. Strictly return emergency contacts.
             
-            if police_officers.exists():
-                # Find closest police station
-                min_dist = float('inf')
-                closest_cop = None
-                
-                for cop in police_officers:
-                    dist = haversine_distance(latitude, longitude, cop.jurisdiction_lat, cop.jurisdiction_lng)
-                    if dist < min_dist:
-                        min_dist = dist
-                        closest_cop = cop
-                
-                if closest_cop:
-                    nearest_station_info = {
-                        'name': closest_cop.station_name,
-                        'distance': f"{min_dist:.1f} km",
-                        'lat': closest_cop.jurisdiction_lat,
-                        'lng': closest_cop.jurisdiction_lng
-                    }
-
+            # Create unassigned alert for record keeping
+            alert = EmergencyAlert.objects.create(
+                user=user,
+                alert_latitude=latitude,
+                alert_longitude=longitude,
+                alert_address='',
+                status='active', # Still active, just unassigned
+                assigned_officer=None
+            )
+            
             return JsonResponse({
                 'success': True,
                 'alert_id': str(alert.id),
                 'officer': None,
                 'backup_mode': True,
-                'nearest_station': nearest_station_info,
+                'nearest_station': None,
                 'emergency_contacts': [
                     {'name': 'Police Control Room', 'number': '100'},
                     {'name': 'Ambulance', 'number': '108'},
                     {'name': 'Women Helpline', 'number': '1091'}
                 ],
-                'message': 'No nearby patrol units detected. Alert broadcast to all stations.'
+                'message': 'No nearby patrol units detected within 30km.'
             })
         
         # Create emergency alert
