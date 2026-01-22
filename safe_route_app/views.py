@@ -25,7 +25,9 @@ def home(request):
     """Render the landing page"""
     return render(request, 'home.html')
 
-@login_required(login_url='safe_route_app:login_page')
+from .decorators import firebase_login_required
+
+@firebase_login_required
 def index(request):
     """
     Render the main map interface.
