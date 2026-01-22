@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 
 from .models import TravelHistory, UserProfile
@@ -49,7 +49,9 @@ def start_tracking(request):
             distance_km=0.0,  # Default required field
             duration_minutes=0,  # Default required field
             route_data=data.get('route_data', {}),
-            video_enabled=True  # Enable by default
+            video_enabled=True,  # Enable by default
+            start_time=timezone.now(),
+            expires_at=timezone.now() + timedelta(days=30)
         )
         
         return JsonResponse({
