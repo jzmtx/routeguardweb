@@ -152,7 +152,7 @@ latitude,longitude,crime_type,date,severity
 12.9720,77.5950,assault,2024-01-05,3
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack🛠️
 
 - **Backend**: Django 5.0 + GeoDjango
 - **Database**: PostgreSQL + PostGIS (production) / SQLite + SpatiaLite (dev)
@@ -162,7 +162,7 @@ latitude,longitude,crime_type,date,severity
 - **Deployment**: Render.com
 - **Styling**: Custom CSS with dark mode
 
-## 🤝 Contributing
+## 🤝 Contributing🤝
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
 
@@ -177,10 +177,26 @@ MIT License - feel free to use this project for learning or commercial purposes.
 - Google for Gemini AI
 - Leaflet.js community
 
-## 📞 Support
+## 📞📞📞 Support
 
 For issues or questions, please open a GitHub issue or contact the development team.
 
 ---
 
-**Built with ❤️ for safer communities**
+**Built with ❤️❤️❤️ for safer communities**
+
+
+
+Layer.js:52 Uncaught TypeError: Cannot read properties of null (reading 'addLayer')
+app/:533 Uncaught SyntaxError: Identifier 'activeMobilePanel' has already been declared (at app/:533:13)
+sos_handler.js:348 ✅ SOS Handler initialized
+live_tracker.js:342 ✅ Live Tracker initialized
+mobile-fix.js:202 Toast: Location detected (success)
+app/:482 RouteGuard SW registered:  
+ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'http://127.0.0.1:8000/static/', …}
+app/:1 Error while trying to use the following icon from the Manifest: http://127.0.0.1:8000/static/icons/icon-144x144.png (Download error or resource isn't a valid image)
+mobile-fix.js:202 Toast: Start set (success)
+mobile-fix.js:202 Toast: Destination set (success)
+5
+mobile-fix.js:202 Toast: Please set both start and end points (warning)
+﻿

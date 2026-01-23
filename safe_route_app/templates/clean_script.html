@@ -1,0 +1,608 @@
+    <script>
+        // Global variables
+        let activeMobilePanel = null;
+        let mapSelectionMode = false;
+        let selectionType = 'start';
+        let searchTimeout = null;
+        let currentSearchType = null;
+
+        // Mobile Interactions
+        function handleMobileSearch(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value;
+                const mainInput = document.getElementById('location-search');
+                const mainBtn = document.getElementById('search-button');
+                if (mainInput && mainBtn) {
+                    mainInput.value = query;
+                    mainBtn.click();
+                }
+            }
+        }
+
+        function useCurrentLocationMobile() {
+            if (navigator.geolocation) {
+                showToast('Getting your location...', 'info');
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name.split(',').slice(0, 3).join(',');
+                                selectLocation(lat, lon, address, 'start');
+                            })
+                            .catch(() => {
+                                selectLocation(lat, lon, `Current Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`, 'start');
+                            });
+                    },
+                    function(error) {
+                        showToast('Location access denied', 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
+        function triggerRouteCalculation() {
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            
+            if (!startInput.value.trim() || !endInput.value.trim()) {
+                showToast('Please set both start and destination points', 'warning');
+                return;
+            }
+            
+            if (!window.startPoint || !window.endPoint) {
+                showToast('Please select locations on map or from search', 'warning');
+                return;
+            }
+            
+            const desktopBtn = document.getElementById('calculate-route');
+            if (desktopBtn) {
+                desktopBtn.disabled = false;
+                desktopBtn.click();
+                
+                showToast('Calculating safest routes...', 'info');
+                
+                setTimeout(() => {
+                    showMobilePanel('results');
+                    syncRouteResults();
+                }, 2000);
+            } else {
+                showToast('Route calculation unavailable', 'error');
+            }
+        }
+
+        // Mobile Panel Management
+        function showMobilePanel(panelType) {
+            if (activeMobilePanel) {
+                closeMobilePanel(activeMobilePanel);
+            }
+
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const navItem = document.querySelector(`[onclick*="showMobilePanel('${panelType}')"]`);
+            if (navItem) navItem.classList.add('active');
+
+            const panelId = `mobile-${panelType}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.style.display = 'block';
+                panel.classList.add('show');
+                setTimeout(() => panel.style.opacity = '1', 10);
+                activeMobilePanel = panelType;
+            }
+
+            if (panelType === 'results') {
+                syncRouteResults();
+            }
+        }
+
+        function closeMobilePanel(panelType) {
+            const panelId = `mobile-${panelType}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.remove('show');
+                panel.style.opacity = '0';
+                setTimeout(() => panel.style.display = 'none', 300);
+            }
+            activeMobilePanel = null;
+
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const routeNavItem = document.querySelector(`[onclick*="showMobilePanel('route')"]`);
+            if (routeNavItem) routeNavItem.classList.add('active');
+        }
+
+        // Location Functions
+        function handleMobileLocationSearch(input, type) {
+            clearTimeout(searchTimeout);
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                hideMobileSuggestions();
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                searchLocations(query, type);
+            }, 300);
+        }
+
+        function showLocationSuggestions(input, type) {
+            currentSearchType = type;
+            if (input.value.trim().length === 0) {
+                showQuickLocations(type);
+            }
+        }
+
+        function showQuickLocations(type) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            const quickLocations = [
+                { icon: '🏠', name: 'Home' },
+                { icon: '💼', name: 'Work' },
+                { icon: '🏥', name: 'Hospital' },
+                { icon: '🚔', name: 'Police Station' },
+                { icon: '🏪', name: 'Market' }
+            ];
+
+            let html = '<div class="quick-locations">';
+            quickLocations.forEach(loc => {
+                html += `<button class="quick-location-btn" onclick="selectQuickLocation('${loc.name}', '${type}')">
+                    ${loc.icon} ${loc.name}
+                </button>`;
+            });
+            html += '</div>';
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+
+        function searchLocations(query, type) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    showSearchResults(data, type);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showToast('Search failed. Try again.', 'error');
+                });
+        }
+
+        function showSearchResults(results, type) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            
+            if (results.length === 0) {
+                suggestionsDiv.innerHTML = '<div class="suggestion-item"><span class="suggestion-text">No results found</span></div>';
+                suggestionsDiv.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            results.forEach(result => {
+                const mainText = result.display_name.split(',')[0];
+                const subText = result.display_name.split(',').slice(1, 3).join(',');
+                
+                html += `
+                    <div class="suggestion-item" onclick="selectLocation('${result.lat}', '${result.lon}', '${mainText.replace(/'/g, "\\'")}', '${type}')">
+                        <span class="suggestion-icon">📍</span>
+                        <div class="suggestion-text">
+                            <div class="suggestion-main">${mainText}</div>
+                            <div class="suggestion-sub">${subText}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+
+        function selectLocation(lat, lon, name, type) {
+            const input = document.getElementById(`mobile-${type}-location`);
+            const desktopInput = document.getElementById(`${type}-location`);
+            const checkBtn = document.getElementById(`${type}-check`);
+            
+            input.value = name;
+            if (desktopInput) desktopInput.value = name;
+
+            if (checkBtn) {
+                checkBtn.style.display = 'flex';
+            }
+
+            const latLng = [parseFloat(lat), parseFloat(lon)];
+            
+            if (type === 'start') {
+                if (window.startMarker && typeof map !== 'undefined' && map) {
+                    map.removeLayer(window.startMarker);
+                }
+                if (typeof map !== 'undefined' && map) {
+                    window.startMarker = L.marker(latLng, {
+                        icon: L.divIcon({
+                            className: 'custom-marker start-marker',
+                            html: '🚩',
+                            iconSize: [30, 30]
+                        })
+                    }).addTo(map);
+                }
+                window.startPoint = latLng;
+            } else {
+                if (window.destinationMarker && typeof map !== 'undefined' && map) {
+                    map.removeLayer(window.destinationMarker);
+                }
+                if (typeof map !== 'undefined' && map) {
+                    window.destinationMarker = L.marker(latLng, {
+                        icon: L.divIcon({
+                            className: 'custom-marker end-marker',
+                            html: '🎯',
+                            iconSize: [30, 30]
+                        })
+                    }).addTo(map);
+                }
+                window.endPoint = latLng;
+            }
+
+            if (typeof map !== 'undefined' && map) {
+                map.setView(latLng, 15);
+            }
+            hideMobileSuggestions();
+            updateMobileCalculateButton();
+            
+            const desktopCalcBtn = document.getElementById('calculate-route');
+            if (desktopCalcBtn && window.startPoint && window.endPoint) {
+                desktopCalcBtn.disabled = false;
+            }
+            
+            showToast(`${type === 'start' ? 'Start' : 'Destination'} set: ${name}`, 'success');
+        }
+
+        function selectQuickLocation(name, type) {
+            const input = document.getElementById(`mobile-${type}-location`);
+            input.value = name;
+            input.focus();
+            
+            handleMobileLocationSearch(input, type);
+            showToast(`Searching for ${name}...`, 'info');
+        }
+
+        function hideMobileSuggestions() {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            suggestionsDiv.style.display = 'none';
+        }
+
+        function clearDestinationMobile() {
+            const mobileEnd = document.getElementById('mobile-end-location');
+            const desktopEnd = document.getElementById('end-location');
+            const endCheck = document.getElementById('end-check');
+            
+            if (mobileEnd) mobileEnd.value = '';
+            if (desktopEnd) desktopEnd.value = '';
+            if (endCheck) endCheck.style.display = 'none';
+            
+            if (window.destinationMarker && typeof map !== 'undefined' && map) {
+                map.removeLayer(window.destinationMarker);
+                window.destinationMarker = null;
+            }
+            
+            updateMobileCalculateButton();
+            showToast('Destination cleared', 'info');
+        }
+
+        // Map Selector Functions
+        function openMapSelector() {
+            const popup = document.getElementById('mobile-map-popup');
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            popup.style.display = 'flex';
+            bottomSheet.style.display = 'none';
+            mobileNav.style.display = 'none';
+            
+            mapSelectionMode = true;
+            selectionType = 'start';
+            
+            updatePopupStatus();
+        }
+
+        function closeMapSelector() {
+            const popup = document.getElementById('mobile-map-popup');
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            popup.style.display = 'none';
+            bottomSheet.style.display = 'block';
+            mobileNav.style.display = 'block';
+            
+            mapSelectionMode = false;
+        }
+
+        function confirmMapSelection() {
+            closeMapSelector();
+            updateMobileCalculateButton();
+        }
+
+        function updatePopupStatus() {
+            const startStatus = document.getElementById('popup-start-status');
+            const endStatus = document.getElementById('popup-end-status');
+            const confirmBtn = document.getElementById('confirm-selection');
+            
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            
+            startStatus.textContent = startInput.value || 'Not selected';
+            endStatus.textContent = endInput.value || 'Not selected';
+            
+            confirmBtn.disabled = !(startInput.value && endInput.value);
+        }
+
+        function searchInPopup(event) {
+            if (event && event.key !== 'Enter') return;
+            
+            const query = document.getElementById('popup-search').value;
+            if (query.length < 2) return;
+            
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const result = data[0];
+                        const name = result.display_name.split(',').slice(0, 3).join(',');
+                        
+                        if (!document.getElementById('mobile-start-location').value) {
+                            selectLocation(result.lat, result.lon, name, 'start');
+                            selectionType = 'end';
+                        } else {
+                            selectLocation(result.lat, result.lon, name, 'end');
+                        }
+                        
+                        updatePopupStatus();
+                        document.getElementById('popup-search').value = '';
+                    }
+                })
+                .catch(error => {
+                    showToast('Search failed', 'error');
+                });
+        }
+
+        // Utility Functions
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                toast.style.position = 'fixed';
+                toast.style.top = '140px';
+                toast.style.left = '20px';
+                toast.style.right = '20px';
+                toast.style.width = 'auto';
+                toast.style.minWidth = 'auto';
+            }
+
+            toast.innerHTML = `<div class="toast-message">${message}</div>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        function updateMobileCalculateButton() {
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            const calcBtn = document.getElementById('mobile-calculate-btn');
+            
+            if (calcBtn && startInput && endInput) {
+                const hasStart = startInput.value.trim() !== '';
+                const hasEnd = endInput.value.trim() !== '';
+                calcBtn.disabled = !(hasStart && hasEnd);
+                
+                if (hasStart && hasEnd) {
+                    calcBtn.style.opacity = '1';
+                    calcBtn.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Find Safest Route';
+                } else {
+                    calcBtn.style.opacity = '0.6';
+                    calcBtn.innerHTML = hasStart ? '🎯 Set destination' : '📍 Set start location';
+                }
+            }
+        }
+
+        // Other Functions
+        function syncRouteResults() {
+            const desktopContainer = document.getElementById('routes-container');
+            const mobileContainer = document.getElementById('mobile-routes-container');
+            if (desktopContainer && mobileContainer) {
+                mobileContainer.innerHTML = desktopContainer.innerHTML;
+            }
+        }
+
+        function generateSampleDataMobile() {
+            document.getElementById('generate-sample-data').click();
+            showToast('Generating sample crime data...', 'info');
+            closeMobilePanel('options');
+        }
+
+        function triggerCSVUploadMobile() {
+            document.getElementById('csv-upload').click();
+            closeMobilePanel('options');
+        }
+
+        function clearAllDataMobile() {
+            if (confirm('Clear all routes and data?')) {
+                document.getElementById('clear-route').click();
+                showToast('Routes cleared', 'success');
+            }
+            closeMobilePanel('options');
+        }
+
+        function showAppInfo() {
+            showToast('RouteGuard v1.0 - Your Safety Navigator', 'info');
+            closeMobilePanel('profile');
+        }
+
+        function minimizeSOS() {
+            const policeScreen = document.getElementById('police-notified');
+            const minimizedBar = document.getElementById('sos-minimized-bar');
+            
+            if (policeScreen) {
+                policeScreen.style.display = 'none';
+                policeScreen.classList.remove('active');
+            }
+            
+            if (minimizedBar) {
+                minimizedBar.style.display = 'flex';
+            }
+        }
+
+        function maximizeSOS() {
+            const policeScreen = document.getElementById('police-notified');
+            const minimizedBar = document.getElementById('sos-minimized-bar');
+            
+            if (policeScreen) {
+                policeScreen.style.display = 'flex';
+                policeScreen.classList.add('active');
+            }
+            
+            if (minimizedBar) {
+                minimizedBar.style.display = 'none';
+            }
+        }
+
+        async function logoutUser() {
+            if (!confirm("Are you sure you want to logout?")) return;
+            try {
+                if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+                    await firebase.auth().signOut();
+                }
+                await fetch('/auth/logout/');
+                window.location.reload();
+            } catch (e) {
+                console.error("Logout failed", e);
+                window.location.reload();
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('click', function(e) {
+            const suggestionsDiv = document.getElementById('mobile-suggestions');
+            const inputStart = document.getElementById('mobile-start-location');
+            const inputEnd = document.getElementById('mobile-end-location');
+            
+            if (!suggestionsDiv.contains(e.target) && 
+                e.target !== inputStart && 
+                e.target !== inputEnd) {
+                hideMobileSuggestions();
+            }
+        });
+
+        // Map click handler
+        function handleMapClick(e) {
+            if (!mapSelectionMode) return;
+            
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name ? 
+                        data.display_name.split(',').slice(0, 3).join(',') : 
+                        `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                    
+                    selectLocation(lat, lon, address, selectionType);
+                    
+                    if (selectionType === 'start') {
+                        const endInput = document.getElementById('mobile-end-location');
+                        if (!endInput.value.trim()) {
+                            selectionType = 'end';
+                            showToast('Now tap map to set destination', 'info');
+                            return;
+                        }
+                    }
+                    
+                    closeMapSelector();
+                })
+                .catch(() => {
+                    const address = `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                    selectLocation(lat, lon, address, selectionType);
+                    closeMapSelector();
+                });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const panels = ['mobile-route-panel', 'mobile-options-panel', 'mobile-profile-panel'];
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = 'none';
+                    panel.style.opacity = '0';
+                    panel.style.transition = 'opacity 0.3s ease';
+                }
+            });
+
+            updateMobileCalculateButton();
+            
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.on('click', handleMapClick);
+                }
+            }, 1000);
+            
+            document.querySelectorAll('.mobile-nav-item').forEach((item) => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/showMobilePanel\('([^']+)'\)/);
+                        if (match) {
+                            showMobilePanel(match[1]);
+                        }
+                    }
+                });
+            });
+        });
+
+        // Firebase auth
+        if (typeof firebase !== 'undefined') {
+            firebase.auth().onAuthStateChanged((user) => {
+                const emailSpan = document.getElementById('user-email');
+                const logoutBtn = document.getElementById('logout-btn');
+                const userInfo = document.getElementById('mobile-user-info');
+                const userEmail = document.getElementById('mobile-user-email');
+
+                if (user) {
+                    if (emailSpan) {
+                        emailSpan.textContent = user.email;
+                        emailSpan.style.display = 'inline';
+                    }
+                    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                    if (userEmail) {
+                        userEmail.textContent = user.email;
+                        userInfo.style.display = 'flex';
+                    }
+                } else {
+                    if (emailSpan) emailSpan.style.display = 'none';
+                    if (logoutBtn) logoutBtn.style.display = 'none';
+                    if (userInfo) userInfo.style.display = 'none';
+                }
+            });
+        }
+    </script>

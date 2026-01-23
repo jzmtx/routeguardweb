@@ -187,6 +187,11 @@
                 <input type="text" id="mobile-start-location" placeholder="Search start location..." 
                     oninput="handleMobileLocationSearch(this, 'start')" 
                     onfocus="showLocationSuggestions(this, 'start')">
+                <button class="location-check-btn" id="start-check" style="display: none;" title="Location Selected">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </button>
                 <button class="icon-btn" onclick="useCurrentLocationMobile()" title="Use Current Location">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
@@ -200,6 +205,11 @@
                 <input type="text" id="mobile-end-location" placeholder="Search destination..." 
                     oninput="handleMobileLocationSearch(this, 'end')" 
                     onfocus="showLocationSuggestions(this, 'end')">
+                <button class="location-check-btn" id="end-check" style="display: none;" title="Location Selected">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </button>
                 <button class="icon-btn" onclick="clearDestinationMobile()" title="Clear Destination">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -216,16 +226,14 @@
             Find Safest Route
         </button>
 
-        <!-- Map Selection Mode Toggle -->
-        <div class="map-selection-toggle">
-            <button class="map-select-btn" id="map-select-btn" onclick="toggleMapSelectionMode()">
-                📍 Tap Map to Select
-            </button>
-            <div class="selection-mode-info" id="selection-mode-info" style="display: none;">
-                <span class="selection-text">📍 Tap map to set <span id="selection-type">start</span> point</span>
-                <button class="cancel-selection" onclick="cancelMapSelection()">Cancel</button>
-            </div>
-        </div>
+        <!-- Select from Map Button -->
+        <button class="select-map-btn" onclick="openMapSelector()">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 8px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Select from Map
+        </button>
 
         <div class="sheet-actions">
             <div class="text-muted" style="font-size: 0.8rem; color: var(--text-muted);">
@@ -239,6 +247,42 @@
             </button>
         </div>
     </div>
+
+    <!-- Mobile Map Selector Popup -->
+    <div class="mobile-map-popup" id="mobile-map-popup" style="display: none;">
+        <div class="map-popup-header">
+            <h3>Select Locations</h3>
+            <button class="close-map-popup" onclick="closeMapSelector()">&times;</button>
+        </div>
+        <div class="map-popup-search">
+            <input type="text" id="popup-search" placeholder="Search location..." onkeyup="searchInPopup(event)">
+            <button onclick="searchInPopup()" class="search-btn">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+        </div>
+        <div class="map-popup-status">
+            <div class="status-item">
+                <span class="status-label">Start:</span>
+                <span class="status-value" id="popup-start-status">Not selected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Destination:</span>
+                <span class="status-value" id="popup-end-status">Not selected</span>
+            </div>
+        </div>
+        <div class="map-popup-instructions">
+            <p>Tap on the map to set your start and destination points</p>
+        </div>
+        <div class="map-popup-actions">
+            <button class="popup-btn secondary" onclick="closeMapSelector()">Cancel</button>
+            <button class="popup-btn primary" onclick="confirmMapSelection()" id="confirm-selection" disabled>Confirm Selection</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
     <!-- SOS Button (Fixed Position) -->
     <div class="sos-wrapper" style="position: fixed; z-index: 1000;">
@@ -427,6 +471,7 @@
     <script src="/static/js/main.js"></script>
     <script src="/static/js/sos_handler.js"></script>
     <script src="/static/js/live_tracker.js"></script>
+    <script src="/static/js/mobile-fix.js"></script>
 
     <!-- PWA Service Worker -->
     <script>
@@ -490,24 +535,71 @@
         function handleMobileSearch(e) {
             if (e.key === 'Enter') {
                 const query = e.target.value;
-                // Reuse existing search logic by injecting into the main search input and clicking button
                 const mainInput = document.getElementById('location-search');
                 const mainBtn = document.getElementById('search-button');
                 if (mainInput && mainBtn) {
                     mainInput.value = query;
                     mainBtn.click();
-                    // Also scroll map into view if needed
                 }
             }
         }
 
         function useCurrentLocationMobile() {
-            // Trigger the desktop button
-            document.getElementById('use-current-location').click();
+            if (navigator.geolocation) {
+                showToast('Getting your location...', 'info');
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name.split(',').slice(0, 3).join(',');
+                                selectLocation(lat, lon, address, 'start');
+                            })
+                            .catch(() => {
+                                selectLocation(lat, lon, `Current Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`, 'start');
+                            });
+                    },
+                    function(error) {
+                        showToast('Location access denied', 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
         }
 
         function triggerRouteCalculation() {
-            document.getElementById('calculate-route').click();
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            
+            if (!startInput.value.trim() || !endInput.value.trim()) {
+                showToast('Please set both start and destination points', 'warning');
+                return;
+            }
+            
+            if (!window.startPoint || !window.endPoint) {
+                showToast('Please select locations on map or from search', 'warning');
+                return;
+            }
+            
+            const desktopBtn = document.getElementById('calculate-route');
+            if (desktopBtn) {
+                desktopBtn.disabled = false;
+                desktopBtn.click();
+                
+                showToast('Calculating safest routes...', 'info');
+                
+                setTimeout(() => {
+                    showMobilePanel('results');
+                    syncRouteResults();
+                }, 2000);
+            } else {
+                showToast('Route calculation unavailable', 'error');
+            }
         }
 
         // Sync Desktop inputs to Mobile inputs (Observer pattern or simple polling/event)
@@ -695,36 +787,52 @@
         function selectLocation(lat, lon, name, type) {
             const input = document.getElementById(`mobile-${type}-location`);
             const desktopInput = document.getElementById(`${type}-location`);
+            const checkBtn = document.getElementById(`${type}-check`);
             
             input.value = name;
             if (desktopInput) desktopInput.value = name;
+
+            // Show check mark
+            if (checkBtn) {
+                checkBtn.style.display = 'flex';
+            }
 
             // Add marker to map
             const latLng = [parseFloat(lat), parseFloat(lon)];
             
             if (type === 'start') {
-                if (window.startMarker) map.removeLayer(window.startMarker);
-                window.startMarker = L.marker(latLng, {
-                    icon: L.divIcon({
-                        className: 'custom-marker start-marker',
-                        html: '🚩',
-                        iconSize: [30, 30]
-                    })
-                }).addTo(map);
+                if (window.startMarker && typeof map !== 'undefined' && map) {
+                    map.removeLayer(window.startMarker);
+                }
+                if (typeof map !== 'undefined' && map) {
+                    window.startMarker = L.marker(latLng, {
+                        icon: L.divIcon({
+                            className: 'custom-marker start-marker',
+                            html: '🚩',
+                            iconSize: [30, 30]
+                        })
+                    }).addTo(map);
+                }
                 window.startPoint = latLng;
             } else {
-                if (window.destinationMarker) map.removeLayer(window.destinationMarker);
-                window.destinationMarker = L.marker(latLng, {
-                    icon: L.divIcon({
-                        className: 'custom-marker end-marker',
-                        html: '🎯',
-                        iconSize: [30, 30]
-                    })
-                }).addTo(map);
+                if (window.destinationMarker && typeof map !== 'undefined' && map) {
+                    map.removeLayer(window.destinationMarker);
+                }
+                if (typeof map !== 'undefined' && map) {
+                    window.destinationMarker = L.marker(latLng, {
+                        icon: L.divIcon({
+                            className: 'custom-marker end-marker',
+                            html: '🎯',
+                            iconSize: [30, 30]
+                        })
+                    }).addTo(map);
+                }
                 window.endPoint = latLng;
             }
 
-            map.setView(latLng, 15);
+            if (typeof map !== 'undefined' && map) {
+                map.setView(latLng, 15);
+            }
             hideMobileSuggestions();
             updateMobileCalculateButton();
             
@@ -819,11 +927,14 @@
         function clearDestinationMobile() {
             const mobileEnd = document.getElementById('mobile-end-location');
             const desktopEnd = document.getElementById('end-location');
+            const endCheck = document.getElementById('end-check');
+            
             if (mobileEnd) mobileEnd.value = '';
             if (desktopEnd) desktopEnd.value = '';
+            if (endCheck) endCheck.style.display = 'none';
             
             // Clear destination marker if exists
-            if (window.destinationMarker) {
+            if (window.destinationMarker && typeof map !== 'undefined' && map) {
                 map.removeLayer(window.destinationMarker);
                 window.destinationMarker = null;
             }
@@ -1029,6 +1140,9 @@
             if (mobileEnd && desktopEnd) mobileEnd.value = desktopEnd.value;
             updateMobileCalculateButton();
         }
+
+        // Mobile-specific toast positioning
+        function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
 
@@ -1092,6 +1206,83 @@
             closeMobilePanel('profile');
         }
 
+        // Mobile Map Selector Functions
+        function openMapSelector() {
+            const popup = document.getElementById('mobile-map-popup');
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            popup.style.display = 'flex';
+            bottomSheet.style.display = 'none';
+            mobileNav.style.display = 'none';
+            
+            // Enable map selection mode
+            mapSelectionMode = true;
+            selectionType = 'start';
+            
+            updatePopupStatus();
+        }
+
+        function closeMapSelector() {
+            const popup = document.getElementById('mobile-map-popup');
+            const bottomSheet = document.querySelector('.mobile-bottom-sheet');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            popup.style.display = 'none';
+            bottomSheet.style.display = 'block';
+            mobileNav.style.display = 'block';
+            
+            mapSelectionMode = false;
+        }
+
+        function confirmMapSelection() {
+            closeMapSelector();
+            updateMobileCalculateButton();
+        }
+
+        function updatePopupStatus() {
+            const startStatus = document.getElementById('popup-start-status');
+            const endStatus = document.getElementById('popup-end-status');
+            const confirmBtn = document.getElementById('confirm-selection');
+            
+            const startInput = document.getElementById('mobile-start-location');
+            const endInput = document.getElementById('mobile-end-location');
+            
+            startStatus.textContent = startInput.value || 'Not selected';
+            endStatus.textContent = endInput.value || 'Not selected';
+            
+            confirmBtn.disabled = !(startInput.value && endInput.value);
+        }
+
+        function searchInPopup(event) {
+            if (event && event.key !== 'Enter') return;
+            
+            const query = document.getElementById('popup-search').value;
+            if (query.length < 2) return;
+            
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const result = data[0];
+                        const name = result.display_name.split(',').slice(0, 3).join(',');
+                        
+                        if (!document.getElementById('mobile-start-location').value) {
+                            selectLocation(result.lat, result.lon, name, 'start');
+                            selectionType = 'end';
+                        } else {
+                            selectLocation(result.lat, result.lon, name, 'end');
+                        }
+                        
+                        updatePopupStatus();
+                        document.getElementById('popup-search').value = '';
+                    }
+                })
+                .catch(error => {
+                    showToast('Search failed', 'error');
+                });
+        }
+
         // Update mobile user info
         function updateMobileUserInfo(user) {
             const userInfo = document.getElementById('mobile-user-info');
@@ -1104,25 +1295,6 @@
                 userInfo.style.display = 'none';
             }
         }
-            // Set initial mobile panel styles
-            const panels = ['mobile-route-panel', 'mobile-options-panel'];
-            panels.forEach(panelId => {
-                const panel = document.getElementById(panelId);
-                if (panel) {
-                    panel.style.display = 'none';
-                    panel.style.opacity = '0';
-                    panel.style.transition = 'opacity 0.3s ease';
-                }
-            });
-
-            // Update mobile button state on load
-            updateMobileCalculateButton();
-            
-            // Initialize map click handler when map is ready
-            setTimeout(() => {
-                if (typeof map !== 'undefined') {
-                    map.on('click', handleMapClick);
-                }
         // Initialize mobile features
         document.addEventListener('DOMContentLoaded', function() {
             // Set initial mobile panel styles
