@@ -38,7 +38,7 @@ def index(request):
         'safety_zone_count': SafetyZone.objects.count(),
         'has_gemini': bool(get_gemini_advisor().enabled),
         'firebase_config': get_firebase_config(),
-        'google_maps_key': settings.GEMINI_API_KEY, # We might need this or not
+        'google_maps_key': settings.GEMINI_API_KEY,
     }
     return render(request, 'index.html', context)
 

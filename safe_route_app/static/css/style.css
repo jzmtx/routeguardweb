@@ -615,6 +615,29 @@ body {
 #map {
     width: 100%;
     height: 100%;
+    z-index: 1;
+}
+
+/* Mobile Map Fixes */
+@media (max-width: 768px) {
+    #map {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 1 !important;
+    }
+    
+    .leaflet-container {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+    
+    .leaflet-map-pane {
+        width: 100% !important;
+        height: 100% !important;
+    }
 }
 
 /* ========== Loading Overlay ========== */
@@ -808,7 +831,7 @@ body {
     background: var(--bg-secondary);
     border-top: 2px solid var(--saffron);
     padding: 12px;
-    z-index: 2000;
+    z-index: 2500;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -830,11 +853,22 @@ body {
     color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 500;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    -webkit-tap-highlight-color: rgba(255, 153, 51, 0.2);
+    user-select: none;
+    touch-action: manipulation;
 }
 
 .mobile-nav-item.active {
     color: var(--saffron);
     background: rgba(255, 153, 51, 0.1);
+}
+
+.mobile-nav-item:active {
+    background: rgba(255, 153, 51, 0.2);
+    transform: scale(0.95);
 }
 
 .mobile-nav-item svg {
@@ -852,11 +886,21 @@ body {
     background: var(--bg-secondary);
     border-radius: 16px;
     padding: 20px;
-    z-index: 1500;
+    z-index: 2000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--saffron);
     max-height: 60vh;
     overflow-y: auto;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.mobile-route-panel.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
 }
 
 .mobile-route-header {
@@ -900,9 +944,43 @@ body {
     background: var(--bg-secondary);
     border-radius: 16px;
     padding: 20px;
-    z-index: 1500;
+    z-index: 2000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--secondary);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.mobile-options-panel.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+#mobile-profile-panel {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 15px;
+    right: 15px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 20px;
+    z-index: 2000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--secondary);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+#mobile-profile-panel.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
 }
 
 .mobile-option-item {
@@ -1802,14 +1880,14 @@ body {
     /* Bottom Sheet */
     .mobile-bottom-sheet {
         position: fixed;
-        bottom: 20px;
+        bottom: 90px;
         left: 15px;
         right: 15px;
         background: #1e293b;
         /* Solid Dark */
         border-radius: 24px;
         padding: 24px;
-        z-index: 1000;
+        z-index: 1500;
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.05);
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1817,6 +1895,7 @@ body {
         /* Ensure it's displayed */
         flex-direction: column;
         gap: 16px;
+        pointer-events: auto;
     }
 
     @keyframes slideUp {
@@ -1886,8 +1965,8 @@ body {
 
     /* Action Buttons */
     .sheet-primary-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #FF6B35 0%, #1E3A8A 100%) !important;
+        color: white !important;
         border: none;
         padding: 16px;
         border-radius: 16px;
@@ -1895,7 +1974,28 @@ body {
         font-weight: 600;
         width: 100%;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        transition: all 0.2s ease;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        pointer-events: auto;
+        touch-action: manipulation;
+    }
+
+    .sheet-primary-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(255, 107, 53, 0.6);
+    }
+
+    .sheet-primary-btn:disabled {
+        background: linear-gradient(135deg, rgba(255, 107, 53, 0.4) 0%, rgba(30, 58, 138, 0.4) 100%) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
 
     /* Floating SOS - Repositioned */
@@ -2777,7 +2877,94 @@ body {
         min-height: 44px;
     }
 }
-/* ========== Improved Launch Button & Text Colors ========== */
+/* Mobile Tracking Panel */
+@media (max-width: 768px) {
+    .mobile-tracking-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .tracking-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6b7280;
+        animation: pulse 2s infinite;
+    }
+
+    .status-indicator.active {
+        background: #10b981;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    .status-indicator.inactive {
+        background: #6b7280;
+        animation: none;
+    }
+
+    .status-text {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: var(--font-base);
+    }
+
+    .tracking-info {
+        background: var(--bg-primary);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid var(--border-color);
+    }
+
+    .tracking-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .tracking-item:last-child {
+        border-bottom: none;
+    }
+
+    .tracking-label {
+        color: var(--text-secondary);
+        font-size: var(--font-sm);
+        font-weight: 500;
+    }
+
+    .tracking-value {
+        color: var(--text-primary);
+        font-size: var(--font-sm);
+        font-weight: 600;
+    }
+
+    .tracking-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+}
 @media (max-width: 768px) {
     /* Better launch button */
     .sheet-primary-btn {
@@ -3119,5 +3306,699 @@ body {
 
     .popup-btn:active:not(:disabled) {
         transform: scale(0.98);
+    }
+}
+/* Mobile Tracking Panel Visibility */
+@media (max-width: 768px) {
+    #mobile-tracking-panel {
+        display: none !important;
+        opacity: 0;
+        transform: translateY(100%);
+        transition: all 0.3s ease;
+        position: fixed;
+        bottom: 80px;
+        left: 15px;
+        right: 15px;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        padding: 20px;
+        z-index: 2000;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--saffron);
+        pointer-events: auto;
+    }
+
+    #mobile-tracking-panel.show {
+        display: block !important;
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Route Header Actions */
+@media (max-width: 768px) {
+    .route-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .clear-routes-btn {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    .clear-routes-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: scale(1.05);
+    }
+
+    .routes-status {
+        background: var(--bg-primary);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+
+    .status-message {
+        color: var(--text-muted);
+        font-size: var(--font-sm);
+        font-style: italic;
+    }
+
+    .routes-status.has-routes {
+        background: linear-gradient(135deg, rgba(255, 153, 51, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        border-color: var(--saffron);
+    }
+
+    .routes-status.has-routes .status-message {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+}
+/* Mobile Map Popup Enhancements */
+@media (max-width: 768px) {
+    .map-popup-map {
+        margin: 16px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid var(--saffron);
+        box-shadow: 0 4px 20px rgba(255, 153, 51, 0.2);
+    }
+
+    #popup-map {
+        width: 100% !important;
+        height: 300px !important;
+        border-radius: 10px;
+    }
+
+    .mobile-map-popup {
+        padding: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .map-popup-header {
+        margin-bottom: 16px;
+    }
+
+    .map-popup-search {
+        margin-bottom: 16px;
+    }
+
+    .map-popup-status {
+        margin: 16px 0;
+    }
+
+    .map-popup-instructions {
+        margin: 16px 0;
+    }
+
+    .map-popup-actions {
+        margin-top: 16px;
+    }
+}
+/* Navigation and Live Tracking Styles */
+.navigation-marker {
+    z-index: 1000 !important;
+}
+
+.mobile-route-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.mobile-route-card:hover {
+    border-color: var(--saffron);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.mobile-route-card.recommended {
+    border-color: var(--saffron);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+}
+
+.mobile-route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.mobile-route-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.mobile-route-score {
+    background: var(--saffron-gradient);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.mobile-route-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.mobile-detail-item {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.mobile-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.select-route-btn {
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.select-route-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+}
+
+/* Tracking Status Indicators */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.active {
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+}
+
+.status-indicator.inactive {
+    background: #6b7280;
+    animation: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.tracking-status {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.tracking-info {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.tracking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tracking-item:last-child {
+    border-bottom: none;
+}
+
+.tracking-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.tracking-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Route highlighting on map */
+.leaflet-interactive.route-highlight {
+    stroke: #10b981 !important;
+    stroke-width: 8 !important;
+    stroke-opacity: 0.9 !important;
+    stroke-dasharray: 10, 5 !important;
+}
+/* Mobile Content Visibility Control */
+.mobile-content-hidden {
+    display: none !important;
+}
+
+.mobile-content-visible {
+    display: block !important;
+}
+
+/* Panel-specific content visibility */
+@media (max-width: 768px) {
+    /* Default: hide all main content on mobile */
+    .map-container,
+    .mobile-bottom-sheet,
+    .mobile-top-bar {
+        display: none;
+    }
+    
+    /* Route panel: show map and inputs */
+    .mobile-panel-route .map-container,
+    .mobile-panel-route .mobile-bottom-sheet,
+    .mobile-panel-route .mobile-top-bar {
+        display: block !important;
+    }
+    
+    /* Results panel: hide everything except results */
+    .mobile-panel-results .map-container,
+    .mobile-panel-results .mobile-bottom-sheet,
+    .mobile-panel-results .mobile-top-bar {
+        display: none !important;
+    }
+    
+    /* Tracking panel: show only map */
+    .mobile-panel-tracking .map-container {
+        display: block !important;
+    }
+    
+    .mobile-panel-tracking .mobile-bottom-sheet,
+    .mobile-panel-tracking .mobile-top-bar {
+        display: none !important;
+    }
+    
+    /* Options and Profile panels: hide all main content */
+    .mobile-panel-options .map-container,
+    .mobile-panel-options .mobile-bottom-sheet,
+    .mobile-panel-options .mobile-top-bar,
+    .mobile-panel-profile .map-container,
+    .mobile-panel-profile .mobile-bottom-sheet,
+    .mobile-panel-profile .mobile-top-bar {
+        display: none !important;
+    }
+}
+
+/* Ensure mobile panels are properly positioned */
+.mobile-route-panel,
+.mobile-options-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    z-index: 2000;
+    overflow-y: auto;
+    padding-top: 60px;
+}
+
+/* Results panel specific styling */
+.mobile-route-panel {
+    padding: 20px;
+}
+
+.mobile-route-panel .mobile-routes-container {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+/* Mobile Tracking Panel Styles */
+.mobile-tracking-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    z-index: 2000;
+    overflow-y: auto;
+    padding: 20px;
+    padding-top: 80px;
+}
+
+.mobile-tracking-content {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+/* Mobile Routes Scroll Container */
+.mobile-routes-scroll {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.mobile-routes-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mobile-routes-scroll::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 3px;
+}
+
+.mobile-routes-scroll::-webkit-scrollbar-thumb {
+    background: var(--saffron);
+    border-radius: 3px;
+}
+
+/* Enhanced Mobile Route Cards */
+.mobile-route-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.mobile-route-card:hover {
+    border-color: var(--saffron);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.mobile-route-card.recommended {
+    border-color: var(--saffron);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+}
+
+.mobile-route-card.recommended::before {
+    content: "⭐ RECOMMENDED";
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    background: var(--saffron-gradient);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Mobile Route Details Grid */
+.mobile-route-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.mobile-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobile-detail-item span:first-child {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.mobile-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Navigation Button Enhancement */
+.select-route-btn {
+    width: 100%;
+    background: var(--saffron-gradient);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.select-route-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+/* Panel Positioning Updates */
+@media (max-width: 768px) {
+    /* Results panel: show map with overlay */
+    .mobile-panel-results .map-container {
+        display: block !important;
+    }
+    
+    .mobile-panel-results .mobile-route-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        height: 60vh;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Tracking panel: show map with overlay */
+    .mobile-panel-tracking .map-container {
+        display: block !important;
+    }
+    
+    .mobile-panel-tracking .mobile-tracking-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        height: 50vh;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    }
+}
+/* Independent Tracking Map */
+.tracking-map-container {
+    margin: 16px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#tracking-map {
+    border: none;
+}
+
+.tracking-location-marker {
+    z-index: 1000;
+}
+
+/* Updated Panel Positioning - All Independent */
+@media (max-width: 768px) {
+    /* Route panel: only shows when route tab active */
+    .mobile-panel-route .map-container,
+    .mobile-panel-route .mobile-bottom-sheet,
+    .mobile-panel-route .mobile-top-bar {
+        display: block !important;
+    }
+    
+    /* All other panels: completely independent */
+    .mobile-panel-results .map-container,
+    .mobile-panel-results .mobile-bottom-sheet,
+    .mobile-panel-results .mobile-top-bar,
+    .mobile-panel-tracking .map-container,
+    .mobile-panel-tracking .mobile-bottom-sheet,
+    .mobile-panel-tracking .mobile-top-bar,
+    .mobile-panel-options .map-container,
+    .mobile-panel-options .mobile-bottom-sheet,
+    .mobile-panel-options .mobile-top-bar,
+    .mobile-panel-profile .map-container,
+    .mobile-panel-profile .mobile-bottom-sheet,
+    .mobile-panel-profile .mobile-top-bar {
+        display: none !important;
+    }
+    
+    /* Full screen panels */
+    .mobile-route-panel,
+    .mobile-tracking-panel,
+    .mobile-options-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-primary);
+        z-index: 2000;
+        overflow-y: auto;
+        padding: 20px;
+        padding-top: 80px;
+    }
+}
+/* Real-time Tracking Marker Animations */
+.live-tracking-marker {
+    z-index: 1000;
+}
+
+.tracking-pulse {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tracking-dot {
+    width: 16px;
+    height: 16px;
+    background: #3b82f6;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.tracking-ring {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #3b82f6;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: tracking-pulse 2s infinite;
+}
+
+@keyframes tracking-pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* Route markers */
+.route-marker {
+    font-size: 24px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Tracking map container enhancements */
+.tracking-map-container {
+    position: relative;
+}
+
+.tracking-map-container::before {
+    content: "🔴 LIVE";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 1000;
+    animation: live-blink 2s infinite;
+}
+
+@keyframes live-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.6; }
+}
+
+/* Enhanced tracking info display */
+.tracking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease;
+}
+
+.tracking-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 0 -8px;
+    padding: 12px 8px;
+}
+
+.tracking-item:last-child {
+    border-bottom: none;
+}
+
+.tracking-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tracking-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+/* Live tracking status indicator */
+.status-indicator.active {
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: status-pulse 2s infinite;
+}
+
+@keyframes status-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
 }

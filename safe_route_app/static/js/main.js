@@ -54,6 +54,21 @@ function initializeMap() {
     state.crimeLayer = L.layerGroup().addTo(state.map);
     state.safetyZoneLayer = L.layerGroup().addTo(state.map);
     
+    // Mobile-specific map setup
+    if (window.innerWidth <= 768) {
+        // Force map to take full viewport on mobile
+        setTimeout(() => {
+            state.map.invalidateSize();
+            // Set a reasonable zoom level for mobile
+            state.map.setView([20.5937, 78.9629], 6);
+        }, 500);
+        
+        // Add mobile-specific touch handling
+        state.map.on('touchstart', function() {
+            state.map.dragging.enable();
+        });
+    }
+    
     // Dispatch MapReady event for dependent scripts
     window.dispatchEvent(new Event('MapReady'));
     
@@ -71,14 +86,21 @@ function initializeMap() {
                 // Check if map is valid before using
                 if (state.map) {
                     state.map.setView([latitude, longitude], 13);
-                    showToast('Location detected', 'success');
+                    if (window.innerWidth <= 768) {
+                        // Show toast on mobile
+                        if (typeof showToast === 'function') {
+                            showToast('Location detected', 'success');
+                        }
+                    }
                 }
             },
             (error) => {
                 console.warn('Geolocation warning:', error.message);
                 // Don't show toast for default behavior to avoid annoyance, just log it
                 // specific errors can be handled if needed
-                if(error.code === 1) showToast('Location permission denied', 'warning');
+                if(error.code === 1 && typeof showToast === 'function') {
+                    showToast('Location permission denied', 'warning');
+                }
             },
             geoOptions
         );
@@ -206,10 +228,15 @@ function setEndPoint(lat, lng, address = null) {
 
 async function reverseGeocode(lat, lng, callback) {
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        const url = proxyUrl + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Reverse geocoding failed');
+        
         const data = await response.json();
         if (data && data.display_name) {
-            // Shorten address for display
             const shortName = data.display_name.split(',').slice(0, 3).join(',');
             callback(shortName);
         } else {
@@ -325,6 +352,7 @@ async function processRoutes(routes) {
              
              return {
                 coordinates: sampledCoords,
+                fullCoordinates: route.coordinates.map(coord => [coord.lat, coord.lng]), // Store full coords for navigation
                 distance: route.summary.totalDistance / 1000, // km
                 duration: route.summary.totalTime / 60         // min
              };
@@ -343,6 +371,11 @@ async function processRoutes(routes) {
         
         const result = await response.json();
         state.currentRoutes = result.routes;
+        
+        // Store routes with full coordinates for navigation
+        result.routes.forEach((route, index) => {
+            route.fullCoordinates = routeData[index].fullCoordinates;
+        });
         
         displayRouteResults(result.routes, result.recommended_index);
         
@@ -573,7 +606,14 @@ async function searchLocation() {
     showLoading(true);
     
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        // Use CORS proxy for API calls
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+        const url = proxyUrl + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Search failed');
+        
         const results = await response.json();
         
         if (results.length === 0) {
@@ -621,7 +661,13 @@ async function searchDestination() {
     btn.disabled = true;
     
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+        const url = proxyUrl + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Search failed');
+        
         const results = await response.json();
         
         if (results.length === 0) {
@@ -661,7 +707,13 @@ async function searchStartLocation() {
     btn.disabled = true;
     
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+        const url = proxyUrl + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Search failed');
+        
         const results = await response.json();
         
         if (results.length === 0) {
@@ -866,4 +918,6 @@ function deg2rad(deg) {
 }
 
 // Initialize fetch
-initializePoliceTracking();
+if (typeof policeLayer !== 'undefined' && policeLayer && typeof state !== 'undefined' && state.map) {
+    initializePoliceTracking();
+}

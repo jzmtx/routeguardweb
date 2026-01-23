@@ -124,10 +124,15 @@ def firebase_register(request):
         print(f"Registration error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
 def logout(request):
     """Logout user"""
-    request.session.flush()
-    return JsonResponse({'success': True})
+    try:
+        request.session.flush()
+        return JsonResponse({'success': True, 'message': 'Logged out successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def get_current_user(request):
     """Get current logged-in user info"""

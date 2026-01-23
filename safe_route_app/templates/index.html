@@ -262,6 +262,9 @@
                 </svg>
             </button>
         </div>
+        <div class="map-popup-map" id="popup-map-container">
+            <div id="popup-map" style="width: 100%; height: 300px;"></div>
+        </div>
         <div class="map-popup-status">
             <div class="status-item">
                 <span class="status-label">Start:</span>
@@ -356,11 +359,12 @@
                 </svg>
                 <span>Results</span>
             </div>
-            <div class="mobile-nav-item" onclick="showMobilePanel('safety')">
+            <div class="mobile-nav-item" onclick="showMobilePanel('tracking')">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Safety</span>
+                <span>Tracking</span>
             </div>
             <div class="mobile-nav-item" onclick="showMobilePanel('profile')">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -375,9 +379,21 @@
     <div class="mobile-route-panel mobile-only" id="mobile-route-panel">
         <div class="mobile-route-header">
             <h3 class="mobile-route-title">🛣️ Route Options</h3>
-            <button class="mobile-close-btn" onclick="closeMobilePanel('route')">&times;</button>
+            <div class="route-header-actions">
+                <button class="clear-routes-btn" onclick="clearAllRoutes()" title="Clear All Routes">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+                <button class="mobile-close-btn" onclick="closeMobilePanel('route')">&times;</button>
+            </div>
         </div>
-        <div id="mobile-routes-container"></div>
+        <div class="routes-status" id="routes-status">
+            <div class="status-message">No routes calculated yet</div>
+        </div>
+        <div class="mobile-routes-scroll">
+            <div id="mobile-routes-container"></div>
+        </div>
     </div>
 
     <!-- Mobile Options Panel -->
@@ -406,7 +422,68 @@
         </div>
     </div>
 
-    <!-- Mobile Profile Panel -->
+    <!-- Mobile Tracking Panel -->
+    <div class="mobile-tracking-panel mobile-only" id="mobile-tracking-panel">
+        <div class="mobile-route-header">
+            <h3 class="mobile-route-title">🧭 Live Navigation</h3>
+            <button class="mobile-close-btn" onclick="closeMobilePanel('tracking')">&times;</button>
+        </div>
+        
+        <!-- Embedded Map for Tracking -->
+        <div class="tracking-map-container">
+            <div id="tracking-map" style="width: 100%; height: 300px; border-radius: 12px;"></div>
+        </div>
+        
+        <div class="mobile-tracking-content">
+            <div class="tracking-status" id="tracking-status">
+                <div class="status-indicator inactive" id="tracking-indicator"></div>
+                <span class="status-text" id="tracking-text">No active navigation</span>
+            </div>
+            <div class="tracking-info" id="tracking-info" style="display: none;">
+                <div class="tracking-item">
+                    <span class="tracking-label">Route:</span>
+                    <span class="tracking-value" id="selected-route-name">--</span>
+                </div>
+                <div class="tracking-item">
+                    <span class="tracking-label">Current Location:</span>
+                    <span class="tracking-value" id="current-location">Getting location...</span>
+                </div>
+                <div class="tracking-item">
+                    <span class="tracking-label">Distance Remaining:</span>
+                    <span class="tracking-value" id="distance-remaining">--</span>
+                </div>
+                <div class="tracking-item">
+                    <span class="tracking-label">ETA:</span>
+                    <span class="tracking-value" id="eta-time">--</span>
+                </div>
+                <div class="tracking-item">
+                    <span class="tracking-label">Safety Score:</span>
+                    <span class="tracking-value" id="current-safety">--</span>
+                </div>
+            </div>
+            <div class="tracking-actions">
+                <button class="mobile-option-item" onclick="startLiveTracking()" id="start-tracking-btn">
+                    <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="mobile-option-text">Start Navigation</span>
+                </button>
+                <button class="mobile-option-item" onclick="stopLiveTracking()" id="stop-tracking-btn" style="display: none;">
+                    <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9l6 6m0-6l-6 6" />
+                    </svg>
+                    <span class="mobile-option-text">Stop Navigation</span>
+                </button>
+                <button class="mobile-option-item" onclick="centerOnLocation()">
+                    <svg class="mobile-option-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    <span class="mobile-option-text">Center on My Location</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <div class="mobile-options-panel mobile-only" id="mobile-profile-panel">
         <div class="mobile-route-header">
             <h3 class="mobile-route-title">👤 Profile</h3>
@@ -472,6 +549,8 @@
     <script src="/static/js/sos_handler.js"></script>
     <script src="/static/js/live_tracker.js"></script>
     <script src="/static/js/mobile-fix.js"></script>
+    <script src="/static/js/mobile-buttons-fix.js"></script>
+    <script src="/static/js/mobile-content-controller.js"></script>
 
     <!-- PWA Service Worker -->
     <script>
@@ -542,6 +621,18 @@
                     mainBtn.click();
                 }
             }
+        }
+
+        // Debug mode - test all buttons
+        if (window.location.search.includes('debug=buttons')) {
+            setTimeout(() => {
+                console.log('🔧 DEBUG MODE: Testing all mobile buttons');
+                if (typeof testMobileButtons === 'function') {
+                    testMobileButtons();
+                } else {
+                    console.log('❌ testMobileButtons function not available');
+                }
+            }, 2000);
         }
 
         function useCurrentLocationMobile() {
@@ -1368,14 +1459,45 @@ function triggerRouteCalculation() {
         async function logoutUser() {
             if (!confirm("Are you sure you want to logout?")) return;
             try {
+                // Show loading state
+                if (typeof showToast === 'function') {
+                    showToast('Logging out...', 'info');
+                }
+                
+                // Firebase logout if available
                 if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
                     await firebase.auth().signOut();
                 }
-                await fetch('/auth/logout/');
-                window.location.reload();
+                
+                // Django logout
+                const response = await fetch('/auth/logout/', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (typeof showToast === 'function') {
+                        showToast('Logged out successfully', 'success');
+                    }
+                    setTimeout(() => {
+                        window.location.href = '/auth/login/';
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Logout failed');
+                }
             } catch (e) {
                 console.error("Logout failed", e);
-                window.location.reload();
+                if (typeof showToast === 'function') {
+                    showToast('Logout completed', 'info');
+                }
+                // Redirect anyway since session might be cleared
+                setTimeout(() => {
+                    window.location.href = '/auth/login/';
+                }, 1000);
             }
         }
 
