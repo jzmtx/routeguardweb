@@ -42,6 +42,13 @@ function closeMobilePanel(panelType) {
         setTimeout(() => panel.style.display = 'none', 300);
     }
     activeMobilePanel = null;
+
+    // Reset navigation to route tab
+    document.querySelectorAll('.mobile-nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    const routeTab = document.querySelector(`[onclick*="showMobilePanel('route')"]`);
+    if (routeTab) routeTab.classList.add('active');
 }
 
 // Location Functions
@@ -141,21 +148,29 @@ function selectLocation(lat, lon, name, type) {
     const latLng = [parseFloat(lat), parseFloat(lon)];
     
     if (type === 'start') {
-        if (window.startMarker && typeof map !== 'undefined' && map) {
-            map.removeLayer(window.startMarker);
+        // Use main.js functions
+        if (typeof setStartPoint === 'function') {
+            setStartPoint(lat, lon, name);
+        } else {
+            // Fallback
+            window.startPoint = latLng;
+            if (typeof map !== 'undefined' && map) {
+                if (window.startMarker) map.removeLayer(window.startMarker);
+                window.startMarker = L.marker(latLng).addTo(map);
+            }
         }
-        if (typeof map !== 'undefined' && map) {
-            window.startMarker = L.marker(latLng).addTo(map);
-        }
-        window.startPoint = latLng;
     } else {
-        if (window.destinationMarker && typeof map !== 'undefined' && map) {
-            map.removeLayer(window.destinationMarker);
+        // Use main.js functions
+        if (typeof setEndPoint === 'function') {
+            setEndPoint(lat, lon, name);
+        } else {
+            // Fallback
+            window.endPoint = latLng;
+            if (typeof map !== 'undefined' && map) {
+                if (window.destinationMarker) map.removeLayer(window.destinationMarker);
+                window.destinationMarker = L.marker(latLng).addTo(map);
+            }
         }
-        if (typeof map !== 'undefined' && map) {
-            window.destinationMarker = L.marker(latLng).addTo(map);
-        }
-        window.endPoint = latLng;
     }
 
     if (typeof map !== 'undefined' && map) {
@@ -178,11 +193,24 @@ function openMapSelector() {
     const bottomSheet = document.querySelector('.mobile-bottom-sheet');
     const mobileNav = document.querySelector('.mobile-nav');
     
-    popup.style.display = 'flex';
-    bottomSheet.style.display = 'none';
-    mobileNav.style.display = 'none';
+    if (popup) {
+        popup.style.display = 'flex';
+    }
+    if (bottomSheet) {
+        bottomSheet.style.display = 'none';
+    }
+    if (mobileNav) {
+        mobileNav.style.display = 'none';
+    }
     
     mapSelectionMode = true;
+    
+    // Ensure map is visible and properly sized
+    setTimeout(() => {
+        if (typeof map !== 'undefined' && map) {
+            map.invalidateSize();
+        }
+    }, 100);
 }
 
 function closeMapSelector() {
@@ -190,11 +218,24 @@ function closeMapSelector() {
     const bottomSheet = document.querySelector('.mobile-bottom-sheet');
     const mobileNav = document.querySelector('.mobile-nav');
     
-    popup.style.display = 'none';
-    bottomSheet.style.display = 'block';
-    mobileNav.style.display = 'block';
+    if (popup) {
+        popup.style.display = 'none';
+    }
+    if (bottomSheet) {
+        bottomSheet.style.display = 'block';
+    }
+    if (mobileNav) {
+        mobileNav.style.display = 'block';
+    }
     
     mapSelectionMode = false;
+    
+    // Ensure map is properly sized when returning
+    setTimeout(() => {
+        if (typeof map !== 'undefined' && map) {
+            map.invalidateSize();
+        }
+    }, 100);
 }
 
 // Utility Functions
@@ -237,16 +278,89 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Wait for map to be ready, then add mobile click handler
+    const checkMapReady = () => {
+        if (typeof map !== 'undefined' && map) {
+            map.on('click', handleMobileMapClick);
+        } else {
+            setTimeout(checkMapReady, 500);
+        }
+    };
+    checkMapReady();
 });
+
+// Mobile map click handler
+function handleMobileMapClick(e) {
+    if (!mapSelectionMode) return;
+    
+    const lat = e.latlng.lat;
+    const lon = e.latlng.lng;
+    
+    // Determine which location to set
+    const startInput = document.getElementById('mobile-start-location');
+    const endInput = document.getElementById('mobile-end-location');
+    
+    let targetType = 'start';
+    if (startInput && startInput.value.trim() && (!endInput || !endInput.value.trim())) {
+        targetType = 'end';
+    }
+    
+    // Reverse geocode to get address
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(response => response.json())
+        .then(data => {
+            const address = data.display_name ? 
+                data.display_name.split(',').slice(0, 3).join(',') : 
+                `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+            
+            selectLocation(lat, lon, address, targetType);
+            
+            // Close map selector if both locations are set
+            if (startInput.value.trim() && endInput.value.trim()) {
+                closeMapSelector();
+            }
+        })
+        .catch(() => {
+            const address = `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+            selectLocation(lat, lon, address, targetType);
+            
+            // Close map selector if both locations are set
+            if (startInput.value.trim() && endInput.value.trim()) {
+                closeMapSelector();
+            }
+        });
+}
 
 // Missing Functions - Add these to fix JavaScript errors
 function syncRouteResults() {
     // Sync route results between desktop and mobile views
-    const desktopResults = document.getElementById('route-results');
-    const mobileResults = document.getElementById('mobile-results-content');
+    const desktopResults = document.getElementById('routes-container');
+    const mobileResults = document.getElementById('mobile-routes-container');
     
     if (desktopResults && mobileResults) {
+        // Copy the content from desktop to mobile
         mobileResults.innerHTML = desktopResults.innerHTML;
+        
+        // Update mobile-specific styling and click handlers
+        const mobileCards = mobileResults.querySelectorAll('.route-card');
+        mobileCards.forEach((card, index) => {
+            card.classList.add('mobile-route-card');
+            card.onclick = () => selectMobileRoute(index);
+        });
+    }
+}
+
+function selectMobileRoute(index) {
+    // Find the corresponding desktop route card and click it
+    const desktopCards = document.querySelectorAll('#routes-container .route-card');
+    if (desktopCards[index]) {
+        const chooseBtn = desktopCards[index].querySelector('button');
+        if (chooseBtn) {
+            chooseBtn.click();
+            showToast('Route selected', 'success');
+            closeMobilePanel('results');
+        }
     }
 }
 
@@ -340,7 +454,11 @@ function selectQuickLocation(locationName, type) {
 }
 
 function triggerRouteCalculation() {
-    if (!window.startPoint || !window.endPoint) {
+    // Check if coordinates are set in main.js state
+    const hasStart = (typeof state !== 'undefined' && state.startCoords) || window.startPoint;
+    const hasEnd = (typeof state !== 'undefined' && state.endCoords) || window.endPoint;
+    
+    if (!hasStart || !hasEnd) {
         showToast('Please set both start and destination points', 'error');
         return;
     }
@@ -348,8 +466,12 @@ function triggerRouteCalculation() {
     // Call the main route calculation function if it exists
     if (typeof calculateRoute === 'function') {
         calculateRoute();
-    } else if (typeof findSafestRoute === 'function') {
-        findSafestRoute();
+        showToast('Calculating safest routes...', 'info');
+        
+        // Show results panel after a delay
+        setTimeout(() => {
+            showMobilePanel('results');
+        }, 2000);
     } else {
         showToast('Route calculation function not available', 'error');
     }

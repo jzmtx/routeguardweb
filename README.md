@@ -187,16 +187,3 @@ For issues or questions, please open a GitHub issue or contact the development t
 
 
 
-Layer.js:52 Uncaught TypeError: Cannot read properties of null (reading 'addLayer')
-app/:533 Uncaught SyntaxError: Identifier 'activeMobilePanel' has already been declared (at app/:533:13)
-sos_handler.js:348 ✅ SOS Handler initialized
-live_tracker.js:342 ✅ Live Tracker initialized
-mobile-fix.js:202 Toast: Location detected (success)
-app/:482 RouteGuard SW registered:  
-ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'http://127.0.0.1:8000/static/', …}
-app/:1 Error while trying to use the following icon from the Manifest: http://127.0.0.1:8000/static/icons/icon-144x144.png (Download error or resource isn't a valid image)
-mobile-fix.js:202 Toast: Start set (success)
-mobile-fix.js:202 Toast: Destination set (success)
-5
-mobile-fix.js:202 Toast: Please set both start and end points (warning)
-﻿

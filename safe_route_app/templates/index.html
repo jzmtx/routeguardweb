@@ -617,8 +617,6 @@
         setInterval(syncInputs, 500); // Polling is simplest and robust for this temp glue code
 
         // Mobile Panel Management
-        let activeMobilePanel = null;
-
         function showMobilePanel(panelType) {
             // Close any open panel first
             if (activeMobilePanel) {
@@ -629,7 +627,8 @@
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`[onclick="showMobilePanel('${panelType}')"]`).classList.add('active');
+            const navItem = document.querySelector(`[onclick*="showMobilePanel('${panelType}')"]`);
+            if (navItem) navItem.classList.add('active');
 
             // Show the requested panel
             const panelId = `mobile-${panelType}-panel`;
@@ -643,7 +642,9 @@
 
             // Special handling for results panel
             if (panelType === 'results') {
-                syncRouteResults();
+                if (typeof syncRouteResults === 'function') {
+                    syncRouteResults();
+                }
             }
         }
 
@@ -1048,37 +1049,33 @@
         }
 
         // Enhanced route calculation with mobile display
-        function triggerRouteCalculation() {
-            const startInput = document.getElementById('mobile-start-location');
-            const endInput = document.getElementById('mobile-end-location');
-            
-            if (!startInput.value.trim() || !endInput.value.trim()) {
-                showToast('Please set both start and destination points', 'warning');
-                return;
-            }
-            
-            if (!window.startPoint || !window.endPoint) {
-                showToast('Please select locations on map or from search', 'warning');
-                return;
-            }
-            
-            // Trigger desktop route calculation
-            const desktopBtn = document.getElementById('calculate-route');
-            if (desktopBtn) {
-                desktopBtn.disabled = false;
-                desktopBtn.click();
-                
-                // Show loading and then results
-                showToast('Calculating safest routes...', 'info');
-                
-                setTimeout(() => {
-                    showMobilePanel('results');
-                    syncRouteResults();
-                }, 2000);
-            } else {
-                showToast('Route calculation unavailable', 'error');
-            }
-        }
+function triggerRouteCalculation() {
+    const startInput = document.getElementById('mobile-start-location');
+    const endInput = document.getElementById('mobile-end-location');
+    
+    if (!startInput.value.trim() || !endInput.value.trim()) {
+        showToast('Please set both start and destination points', 'warning');
+        return;
+    }
+    
+    if (!window.startPoint || !window.endPoint) {
+        showToast('Please select locations on map or from search', 'warning');
+        return;
+    }
+    
+    // Use the main calculateRoute function from main.js
+    if (typeof calculateRoute === 'function') {
+        calculateRoute();
+        showToast('Calculating safest routes...', 'info');
+        
+        // Show results panel after calculation
+        setTimeout(() => {
+            showMobilePanel('results');
+        }, 2000);
+    } else {
+        showToast('Route calculation function not available', 'error');
+    }
+}
 
         // Enhanced route results sync
         function syncRouteResults() {
