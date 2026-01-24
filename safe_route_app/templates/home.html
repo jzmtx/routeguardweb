@@ -133,6 +133,76 @@
             font-family: monospace;
             color: var(--success);
         }
+
+        /* Mobile Menu Styles */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            z-index: 1001;
+            padding: 8px;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transform: translateY(-200%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+
+        .mobile-link {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .mobile-link:hover,
+        .mobile-link:active {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .mobile-link.highlight {
+            background: var(--primary-gradient);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none !important;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .header-content {
+                justify-content: space-between;
+                padding: 10px 20px;
+            }
+        }
     </style>
 </head>
 
@@ -152,10 +222,27 @@
                 </svg>
                 <h1>RouteGuard</h1>
             </div>
-            <div class="header-stats">
+
+            <!-- Desktop Nav -->
+            <div class="header-stats desktop-nav">
                 <a href="{% url 'safe_route_app:login_page' %}" class="btn-secondary">Login</a>
                 <a href="{% url 'safe_route_app:register_page' %}" class="btn-primary">Get Started</a>
             </div>
+
+            <!-- Mobile Toggle -->
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="{% url 'safe_route_app:login_page' %}" class="mobile-link">Login</a>
+            <a href="{% url 'safe_route_app:register_page' %}" class="mobile-link highlight">Get Started</a>
+            <a href="#how-it-works" class="mobile-link" onclick="toggleMobileMenu()">How It Works</a>
+            <a href="#features" class="mobile-link" onclick="toggleMobileMenu()">Features</a>
         </div>
     </header>
 
@@ -365,6 +452,19 @@
                 }
             });
         });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+
+            // Toggle body scroll
+            if (menu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+        }
     </script>
 </body>
 

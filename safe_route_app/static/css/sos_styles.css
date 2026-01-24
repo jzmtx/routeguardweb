@@ -1,5 +1,11 @@
 /* ========== SOS Emergency System Styles ========== */
 
+body,
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 /* Floating SOS Button */
 .sos-button {
     position: fixed;
@@ -16,7 +22,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 1001;
+    z-index: 99999 !important;
     transition: all 0.3s;
     animation: sosGlow 2s infinite;
 }
@@ -355,8 +361,20 @@
     .sos-button {
         width: 70px;
         height: 70px;
-        bottom: 80px;
+        bottom: 120px;
         right: 16px;
+        z-index: 99999 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .sos-wrapper {
+        bottom: initial !important;
+        top: initial !important;
+        right: initial !important;
+        left: initial !important;
+        position: static !important;
+        /* Let the button handle its own fixed positioning */
+        z-index: 99999 !important;
     }
 
     .sos-icon {

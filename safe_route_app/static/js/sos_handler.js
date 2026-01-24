@@ -27,7 +27,12 @@ class SOSHandler {
     }
     
     startCountdown() {
+        // Prevent multiple countdowns
         if (this.isActive) return;
+        if (this.countdownTimer) {
+            clearInterval(this.countdownTimer);
+            this.countdownTimer = null;
+        }
         
         const modal = document.getElementById('sos-countdown');
         const numberEl = document.getElementById('countdown-number');
@@ -42,6 +47,7 @@ class SOSHandler {
                 numberEl.textContent = count;
             } else {
                 clearInterval(this.countdownTimer);
+                this.countdownTimer = null;
                 this.activateSOS();
             }
         }, 1000);
