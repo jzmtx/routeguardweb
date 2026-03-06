@@ -170,16 +170,13 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 MIT License - feel free to use this project for learning or commercial purposes.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - OpenStreetMap for free map tiles
 - OSRM for routing engine
 - Google for Gemini AI
 - Leaflet.js community
 
-## 📞📞📞 Support
-
-For issues or questions, please open a GitHub issue or contact the development team.
 
 ---
 
